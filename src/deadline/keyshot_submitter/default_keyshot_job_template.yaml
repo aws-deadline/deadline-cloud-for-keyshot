@@ -1,0 +1,99 @@
+specificationVersion: 'jobtemplate-2023-09'
+name: Default KeyShot Job Template
+parameterDefinitions:
+- name: KeyShotFile
+  type: PATH
+  objectType: FILE
+  dataFlow: IN
+  userInterface:
+    control: CHOOSE_INPUT_FILE
+    label: KeyShot Package File
+    groupLabel: KeyShot Settings
+    fileFilters:
+    - label: KeyShot Package files
+      patterns:
+      - '*.ksp'
+      - '*.bip'
+    - label: All Files
+      patterns:
+      - '*'
+  description: The KeyShot package file to render.
+- name: Frames
+  type: STRING
+  userInterface:
+    control: LINE_EDIT
+    label: Frames
+    groupLabel: KeyShot Settings
+  description: The frames to render. E.g. 1-3,8,11-15
+  minLength: 1
+- name: OutputFilePath
+  type: PATH
+  objectType: FILE
+  dataFlow: OUT
+  userInterface:
+    control: CHOOSE_INPUT_FILE
+    label: Output File Path
+    groupLabel: KeyShot Settings
+  description: The render output path.
+- name: IncludeAlpha
+  type: STRING
+  userInterface:
+    control: CHECK_BOX
+    label: Include Alpha (Transparency)
+    groupLabel: KeyShot Settings
+  description: Include alpha channel
+  default: 'true'
+  allowedValues:
+  - 'true'
+  - 'false'
+- name: RenderLayers
+  type: STRING
+  userInterface:
+    control: CHECK_BOX
+    label: Render Layers
+    groupLabel: KeyShot Settings
+  description: Include all render layers
+  default: 'true'
+  allowedValues:
+  - 'true'
+  - 'false'
+steps:
+- name: RenderCommand
+  parameterSpace:
+    taskParameterDefinitions:
+    - name: Frame
+      type: INT
+      range: "{{Param.Frames}}"
+  stepEnvironments:
+  - name: KeyShot
+    variables:
+      OUTPUT_PATH: ""
+  script:
+    actions:
+      onRun:
+        command: '{{Task.File.Run}}'
+    embeddedFiles:
+      - name: headlessScript
+        filename: headlessScript.py
+        type: TEXT
+        data: |
+          opts = lux.getRenderOptions()
+          opts.setAddToQueue(False)
+          if "{{Param.IncludeAlpha}}" == "true":
+              opts.setOutputAlphaChannel(True)
+          if "{{Param.RenderLayers}}" == "true":
+              opts.setOutputRenderLayers(True)
+          frame = int("{{Task.Param.Frame}}")
+          lux.setAnimationFrame(frame)
+          output_path = r"{{Param.OutputFilePath}}"
+          print("renderImage: %s" % output_path)
+          output_path = output_path.replace("%d", str(frame))
+          print("renderImage: %s" % output_path)
+          lux.renderImage(path=output_path, opts=opts)
+          exit()
+      - name: Run
+        runnable: true
+        filename: run.ps1
+        type: TEXT
+        data: |
+          keyshot_headless -progress '{{Param.KeyShotFile}}' -script '{{Task.File.headlessScript}}'
