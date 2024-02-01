@@ -134,10 +134,10 @@ class SceneSettingsWidget(QWidget):
         settings.override_frame_range = self.frame_override_chck.isChecked()
         settings.frame_list = self.frame_override_txt.text()
 
-        # if self.developer_options:
-        #     settings.include_adaptor_wheels = self.include_adaptor_wheels.isChecked()
-        # else:
-        #     settings.include_adaptor_wheels = False
+        if self.developer_options:
+            settings.include_adaptor_wheels = self.include_adaptor_wheels.isChecked()
+        else:
+            settings.include_adaptor_wheels = False
 
     def activate_frame_override_changed(self, state):
         """
