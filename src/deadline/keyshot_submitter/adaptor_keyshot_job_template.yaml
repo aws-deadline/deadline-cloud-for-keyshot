@@ -58,42 +58,62 @@ parameterDefinitions:
   - 'true'
   - 'false'
 steps:
-- name: RenderCommand
+- name: Render
   parameterSpace:
     taskParameterDefinitions:
     - name: Frame
       type: INT
-      range: "{{Param.Frames}}"
+      range: '{{Param.Frames}}'
   stepEnvironments:
   - name: KeyShot
-    variables:
-      OUTPUT_PATH: ""
+    description: Runs KeyShot in the background.
+    script:
+      embeddedFiles:
+      - name: initData
+        filename: init-data.yaml
+        type: TEXT
+        data: |
+          scene_file: '{{Param.KeyShotFile}}'
+          output_file_path: '{{Param.OutputFilePath}}'
+      actions:
+        onEnter:
+          command: KeyShotAdaptor
+          args:
+          - daemon
+          - start
+          - --path-mapping-rules
+          - file://{{Session.PathMappingRulesFile}}
+          - --connection-file
+          - '{{Session.WorkingDirectory}}/connection.json'
+          - --init-data
+          - file://{{Env.File.initData}}
+          cancelation:
+            mode: NOTIFY_THEN_TERMINATE
+        onExit:
+          command: KeyShotAdaptor
+          args:
+          - daemon
+          - stop
+          - --connection-file
+          - '{{ Session.WorkingDirectory }}/connection.json'
+          cancelation:
+            mode: NOTIFY_THEN_TERMINATE
   script:
+    embeddedFiles:
+    - name: runData
+      filename: run-data.yaml
+      type: TEXT
+      data: |
+        frame: {{Task.Param.Frame}}
     actions:
       onRun:
-        command: '{{Task.File.Run}}'
-    embeddedFiles:
-      - name: headlessScript
-        filename: headlessScript.py
-        type: TEXT
-        data: |
-          opts = lux.getRenderOptions()
-          opts.setAddToQueue(False)
-          if "{{Param.IncludeAlpha}}" == "true":
-              opts.setOutputAlphaChannel(True)
-          if "{{Param.RenderLayers}}" == "true":
-              opts.setOutputRenderLayers(True)
-          frame = int("{{Task.Param.Frame}}")
-          lux.setAnimationFrame(frame)
-          output_path = r"{{Param.OutputFilePath}}"
-          print("renderImage: %s" % output_path)
-          output_path = output_path.replace("%d", str(frame))
-          print("renderImage: %s" % output_path)
-          lux.renderImage(path=output_path, opts=opts)
-          exit()
-      - name: Run
-        runnable: true
-        filename: run.ps1
-        type: TEXT
-        data: |
-          keyshot_headless -progress -floating_license_server '@localhost' -floating_feature keyshot2 '{{Param.KeyShotFile}}' -script '{{Task.File.headlessScript}}'
+        command: KeyShotAdaptor
+        args:
+        - daemon
+        - run
+        - --connection-file
+        - '{{ Session.WorkingDirectory }}/connection.json'
+        - --run-data
+        - file://{{ Task.File.runData }}
+        cancelation:
+          mode: NOTIFY_THEN_TERMINATE

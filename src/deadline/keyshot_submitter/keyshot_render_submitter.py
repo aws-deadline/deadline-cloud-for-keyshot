@@ -110,7 +110,7 @@ def _get_job_template(
 
 
 def _show_submitter(data, parent=None, f=Qt.WindowFlags()):
-    with open(Path(__file__).parent / "default_keyshot_job_template.yaml") as fh:
+    with open(Path(__file__).parent / "adaptor_keyshot_job_template.yaml") as fh:
         default_job_template = yaml.safe_load(fh)
 
     render_settings = RenderSubmitterUISettings()

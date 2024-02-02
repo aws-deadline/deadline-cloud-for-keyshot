@@ -15,7 +15,7 @@ import lux
 # Python binary to execute keyshot submitter __main__ modiule
 DEADLINE_PYTHON = os.getenv("DEADLINE_PYTHON")
 # Path to keyshot submitter __main__ module
-# In dev mode: src/deadlne/keyshot_submitter
+# In dev mode: src/deadline/keyshot_submitter
 DEADLINE_KEYSHOT = os.getenv("DEADLINE_KEYSHOT")
 
 # save scene information to json file for submitter module to load

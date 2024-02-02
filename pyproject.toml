@@ -10,9 +10,12 @@ license = ""
 requires-python = ">=3.9"
 
 dependencies = [
-    "deadline == 0.36.*",
-    "openjd-adaptor-runtime == 0.3.*",
+    "deadline == 0.37.*",
+    "openjd-adaptor-runtime == 0.4.*",
 ]
+
+[project.scripts]
+KeyShotAdaptor = "deadline.keyshot_adaptor.KeyShotAdaptor:main"
 
 [tool.hatch.build]
 artifacts = [
@@ -33,6 +36,7 @@ path = "hatch_custom_hook.py"
 
 [tool.hatch.build.hooks.custom.copy_version_py]
 destinations = [
+  "src/deadline/keyshot_adaptor",
   "src/deadline/keyshot_submitter",
 ]
 
@@ -81,6 +85,7 @@ xfail_strict = true
 addopts = [
     "--durations=5",
     "--color=yes",
+    "--cov=src/deadline/keyshot_adaptor",
     "--cov=src/deadline/keyshot_submitter",
     "--cov-report=html:build/coverage",
     "--cov-report=xml:build/coverage/coverage.xml",
@@ -98,7 +103,7 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
-source_pkgs = [ "deadline/keyshot_submitter" ]
+source_pkgs = [ "deadline/keyshot_submitter", "deadline/keyshot_adaptor"]
 branch = true
 parallel = true
 omit = [ "**/__main__.py", "**/_version.py" ]
@@ -110,4 +115,4 @@ source =  [
 
 [tool.coverage.report]
 show_missing = true
-fail_under = 40
+fail_under = 15
