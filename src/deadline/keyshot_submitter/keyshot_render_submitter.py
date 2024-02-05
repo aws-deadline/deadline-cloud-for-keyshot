@@ -56,6 +56,7 @@ def _get_parameter_values(
 
     # Output
     parameter_values.append({"name": "OutputFilePath", "value": settings.output_file_path})
+    parameter_values.append({"name": "OutputFormat", "value": settings.output_format})
 
     parameter_values.append(
         {"name": "IncludeAlpha", "value": "true" if settings.include_alpha else "false"}
@@ -115,16 +116,16 @@ def _show_submitter(data, parent=None, f=Qt.WindowFlags()):
 
     render_settings = RenderSubmitterUISettings()
     scene_name = data["scene"]["file"]
-    if data["animation"]["duration"]:
-        frames = "%s-%s" % (0, data["animation"]["duration"])
+    if data["animation"].get("frames", None):
+        frames = "%s-%s" % (1, data["animation"]["frames"])
     else:
         frames = "%s" % data["frame"]
 
     # Set the setting defaults that come from the scene
-    output_path = Path(scene_name).parent
+    render_settings.output_folder = str(Path(scene_name).parent)
+    render_settings.output_name = data["scene"]["name"]
     render_settings.name = Path(scene_name).name
     render_settings.frame_list = frames
-    render_settings.output_file_path = str(output_path)
 
     # Load the sticky settings
     render_settings.load_sticky_settings(scene_name)

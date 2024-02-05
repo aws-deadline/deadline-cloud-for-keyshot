@@ -35,6 +35,25 @@ parameterDefinitions:
     label: Output File Path
     groupLabel: KeyShot Settings
   description: The render output path.
+- name: OutputFormat
+  type: STRING
+  description: The render output format
+  allowedValues: 
+    [
+      "RENDER_OUTPUT_PNG",
+      "RENDER_OUTPUT_JPEG",
+      "RENDER_OUTPUT_EXR",
+      "RENDER_OUTPUT_TIFF8",
+      "RENDER_OUTPUT_TIFF32",
+      "RENDER_OUTPUT_PSD8",
+      "RENDER_OUTPUT_PSD16",
+      "RENDER_OUTPUT_PSD32"
+    ]
+  default: RENDER_OUTPUT_PNG
+  userInterface:
+    control: DROPDOWN_LIST
+    label: Output Format(Must match file extension)
+    groupLabel: KeyShot Settings
 - name: IncludeAlpha
   type: STRING
   userInterface:
@@ -86,10 +105,11 @@ steps:
           frame = int("{{Task.Param.Frame}}")
           lux.setAnimationFrame(frame)
           output_path = r"{{Param.OutputFilePath}}"
-          print("renderImage: %s" % output_path)
           output_path = output_path.replace("%d", str(frame))
-          print("renderImage: %s" % output_path)
-          lux.renderImage(path=output_path, opts=opts)
+          output_format_code = lux.{{Param.OutputFormat}}
+          print("Output Path: %s" % output_path)
+          print("Output Format: %s" % output_format_code)
+          lux.renderImage(path=output_path, opts=opts, format=output_format_code)
           exit()
       - name: Run
         runnable: true
