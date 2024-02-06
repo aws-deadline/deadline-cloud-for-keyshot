@@ -22,6 +22,9 @@ class RenderSubmitterUISettings:
 
     override_frame_range: bool = field(default=False, metadata={"sticky": True})
     frame_list: str = field(default="", metadata={"sticky": True})
+    output_name: str = field(default="", metadata={"sticky": True})
+    output_folder: str = field(default="", metadata={"sticky": True})
+    output_format: str = field(default="", metadata={"sticky": True})
     output_file_path: str = field(default="", metadata={"sticky": True})
 
     input_filenames: list[str] = field(default_factory=list, metadata={"sticky": True})
@@ -75,3 +78,17 @@ class RenderSubmitterUISettings:
                 if field.metadata.get("sticky")
             }
             json.dump(obj, fh, indent=1)
+
+
+@dataclass
+class KeyShotOutputFormat:
+    """
+    Mapping between the display name on the submitter UI, the file extension
+    to use for the output file, and the name of the KeyShot scripting property
+    used to lookup the numeric code needed to set the output format in the call
+    to lux.renderImage()
+    """
+
+    display_name: str
+    file_extension: str
+    keyshot_property_name: str

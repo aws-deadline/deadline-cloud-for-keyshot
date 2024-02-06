@@ -2,8 +2,24 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "properties": {
-        "scene_file": { "type": "string" },
-        "output_file_path": { "type": "string" }
+        "scene_file": {
+            "type": "string"
+        },
+        "output_file_path": {
+            "type": "string"
+        },
+        "output_format": {
+            "enum": [
+                "RENDER_OUTPUT_PNG",
+                "RENDER_OUTPUT_JPEG",
+                "RENDER_OUTPUT_EXR",
+                "RENDER_OUTPUT_TIFF8",
+                "RENDER_OUTPUT_TIFF32",
+                "RENDER_OUTPUT_PSD8",
+                "RENDER_OUTPUT_PSD16",
+                "RENDER_OUTPUT_PSD32"
+            ]
+        }
     },
     "required": [
         "scene_file"

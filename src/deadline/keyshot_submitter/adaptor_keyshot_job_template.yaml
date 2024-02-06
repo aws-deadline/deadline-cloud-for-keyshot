@@ -35,6 +35,25 @@ parameterDefinitions:
     label: Output File Path
     groupLabel: KeyShot Settings
   description: The render output path.
+- name: OutputFormat
+  type: STRING
+  description: The render output format
+  allowedValues: 
+    [
+      "RENDER_OUTPUT_PNG",
+      "RENDER_OUTPUT_JPEG",
+      "RENDER_OUTPUT_EXR",
+      "RENDER_OUTPUT_TIFF8",
+      "RENDER_OUTPUT_TIFF32",
+      "RENDER_OUTPUT_PSD8",
+      "RENDER_OUTPUT_PSD16",
+      "RENDER_OUTPUT_PSD32"
+    ]
+  default: RENDER_OUTPUT_PNG
+  userInterface:
+    control: DROPDOWN_LIST
+    label: Output Format(Must match file extension)
+    groupLabel: KeyShot Settings
 - name: IncludeAlpha
   type: STRING
   userInterface:
@@ -75,6 +94,7 @@ steps:
         data: |
           scene_file: '{{Param.KeyShotFile}}'
           output_file_path: '{{Param.OutputFilePath}}'
+          output_format: '{{Param.OutputFormat}}'
       actions:
         onEnter:
           command: KeyShotAdaptor

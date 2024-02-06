@@ -26,11 +26,9 @@ class KeyShotNotRunningError(Exception):
     pass
 
 
-_FIRST_KEYSHOT_ACTIONS = ["scene_file", "output_file_path"]
+_FIRST_KEYSHOT_ACTIONS = ["scene_file", "output_file_path", "output_format"]
 
-_KEYSHOT_RUN_KEYS = {
-    "frame",
-}
+_KEYSHOT_RUN_KEYS = {"frame"}
 
 
 def _check_for_exception(func: Callable) -> Callable:
@@ -420,4 +418,5 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
         set to be added to the action queue.
         """
         for name in _FIRST_KEYSHOT_ACTIONS:
-            self._action_queue.enqueue_action(Action(name, {name: self.init_data[name]}))
+            if name in self.init_data:
+                self._action_queue.enqueue_action(Action(name, {name: self.init_data[name]}))
