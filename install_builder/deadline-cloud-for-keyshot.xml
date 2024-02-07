@@ -1,0 +1,146 @@
+<component>
+    <name>deadline_cloud_for_keyshot</name>
+    <description>Deadline Cloud for KeyShot 12</description>
+    <detailedDescription>KeyShot plugin for submitting jobs to Amazon Deadline Cloud.</detailedDescription>
+    <canBeEdited>1</canBeEdited>
+    <selected>0</selected>
+    <show>1</show>
+    <folderList>
+        <folder>
+            <description>KeyShot Plug-in Script</description>
+            <destination>${keyshot_scripts_folder}</destination>
+            <name>keyshotplugin</name>
+            <platforms>all</platforms>
+            <distributionFileList>
+                <distributionFile>
+                    <origin>components/deadline-cloud-for-keyshot/keyshot_script/DeadlineCloudSubmitter.py</origin>
+                </distributionFile>
+            </distributionFileList>
+        </folder>
+        <folder>
+            <description>KeyShot Submitter Files</description>
+            <destination>${keyshot_installdir}/keyshot_submitter</destination>
+            <name>keyshot</name>
+            <platforms>all</platforms>
+            <distributionFileList>
+                <distributionDirectory allowWildcards="1">
+                    <origin>components/deadline-cloud-for-keyshot/src/deadline/keyshot_submitter/*</origin>
+                </distributionDirectory>
+            </distributionFileList>
+        </folder>
+        <folder>
+             <description>Dependency Files</description>
+             <destination>${installdir}/tmp/keyshot_deps</destination>
+             <name>keyshotdeps</name>
+             <platforms>all</platforms>
+             <distributionFileList>
+                 <distributionDirectory allowWildcards="1">
+                     <origin>components/deadline-cloud-for-keyshot/dependency_bundle</origin>
+                 </distributionDirectory>
+             </distributionFileList>
+         </folder>
+    </folderList>
+    <initializationActionList>
+        <if>
+            <conditionRuleList>
+                <compareText>
+                    <logic>does_not_contain</logic>
+                    <text>${platform_name}</text>
+                    <value>linux</value>
+                </compareText>
+            </conditionRuleList>
+            <actionList>
+                <setInstallerVariable name="all_components" value="${all_components} deadline_cloud_for_keyshot" />
+            </actionList>
+            <elseActionList>
+                <setInstallerVariable name="component(deadline_cloud_for_keyshot).show" value="0"/>
+            </elseActionList>
+        </if>
+    </initializationActionList>
+    <readyToInstallActionList>
+        <setInstallerVariable name="keyshot_installdir" value="${installdir}\Submitters\KeyShot" />
+        <if>
+            <conditionRuleList>
+                <platformTest type="windows" />
+            </conditionRuleList>
+            <actionList>
+                <setInstallerVariable name="keyshot_deps_platform" value="windows" />
+                <setInstallerVariable name="win_user_keyshot_script_folder" value="${user_home_directory}\Documents\KeyShot 12\Scripts" />
+                <setInstallerVariable name="win_system_keyshot_script_folder" value="${windows_folder_common_documents}\KeyShot 12\Scripts" />
+                <if>
+                    <conditionRuleList>
+                        <fileExists path="${win_user_keyshot_script_folder}" />
+                    </conditionRuleList>
+                    <actionList>
+                        <setInstallerVariable name="keyshot_scripts_folder" value="${win_user_keyshot_script_folder}" />
+                    </actionList>
+                    <elseActionList>
+                        <if>
+                            <conditionRuleList>
+                                <fileExists path="${win_system_keyshot_script_folder}" />
+                            </conditionRuleList>
+                            <actionList>
+                                <setInstallerVariable name="keyshot_scripts_folder" value="${win_system_keyshot_script_folder}" />
+                            </actionList>
+                            <elseActionList>
+                                <setInstallerVariable name="keyshot_scripts_folder" value="${keyshot_installdir}" />
+                                <showWarning text="No installation of KeyShot 12 was found. Please manually move the DeadlineCloudSubmitter.py script into the KeyShot scripts folder to use the plug-in." />
+                            </elseActionList>
+                        </if>
+                    </elseActionList>
+                </if>
+            </actionList>
+        </if>
+        <if>
+            <conditionRuleList>
+                <platformTest type="osx"/>
+            </conditionRuleList>
+            <actionList>
+                <setInstallerVariable name="keyshot_deps_platform" value="macos"/>
+                <setInstallerVariable name="mac_keyshot_scripts_folder" value="${platform_install_prefix}/Application Support/KeyShot12/Scripts"/>
+                <if>
+                    <conditionRuleList>
+                        <fileExists path="${mac_keyshot_scripts_folder}" />
+                    </conditionRuleList>
+                    <actionList>
+                        <setInstallerVariable name="keyshot_scripts_folder" value="${mac_keyshot_scripts_folder}"/>
+                    </actionList>
+                    <elseActionList>
+                        <setInstallerVariable name="keyshot_scripts_folder" value="${keyshot_installdir}" />
+                        <showWarning text="No installation of KeyShot 12 was found. Please manually move the DeadlineCloudSubmitter.py script into the KeyShot scripts folder to use the plug-in." />
+                    </elseActionList>
+                </if>
+            </actionList>
+        </if>
+    </readyToInstallActionList>
+    <parameterList>
+        <stringParameter name="deadline_cloud_for_keyshot_summary" ask="0" cliOptionShow="0">
+            <value>Deadline Cloud for KeyShot
+- Install the integrated KeyShot submitter files to the installation directory
+- Register the plug-in with KeyShot by moving the DeadlineCloudSubmitter script to the KeyShot scripts folder
+- Sets the DEADLINE_KEYSHOT environment variable to point the DeadlineCloudSubmitter script to the submitter module
+            </value>
+        </stringParameter>
+    </parameterList>
+    <postInstallationActionList>
+        <unzip>
+            <destinationDirectory>${keyshot_installdir}</destinationDirectory>
+            <zipFile>${installdir}/tmp/keyshot_deps/dependency_bundle/deadline_cloud_for_keyshot_submitter-deps-${keyshot_deps_platform}.zip</zipFile>
+        </unzip>
+        <deleteFile>
+            <path>${installdir}/tmp/keyshot_deps</path>
+        </deleteFile>
+        <fnAddEnvironmentVariable>
+            <name>DEADLINE_KEYSHOT</name>
+            <value>${keyshot_installdir}/keyshot_submitter</value>
+            <scope>${installscope}</scope>
+        </fnAddEnvironmentVariable>
+    </postInstallationActionList>
+    <shouldPackRuleList>
+        <compareText>
+               <logic>does_not_contain</logic>
+               <text>${platform_name}</text>
+               <value>linux</value>
+        </compareText>
+    </shouldPackRuleList>
+</component>

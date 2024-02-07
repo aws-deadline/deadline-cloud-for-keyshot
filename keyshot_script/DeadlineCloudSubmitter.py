@@ -18,6 +18,16 @@ DEADLINE_PYTHON = os.getenv("DEADLINE_PYTHON")
 # In dev mode: src/deadline/keyshot_submitter
 DEADLINE_KEYSHOT = os.getenv("DEADLINE_KEYSHOT")
 
+if not DEADLINE_PYTHON:
+    raise RuntimeError(
+        "Environment variable DEADLINE_PYTHON not set. Please set DEADLINE_PYTHON to point to an installed version of Python with Pyside2."
+    )
+
+if not DEADLINE_KEYSHOT:
+    raise RuntimeError(
+        "Environment variable DEADLINE_KEYSHOT not set. Please set DEADLINE_KEYSHOT to point to the keyshot_submitter folder."
+    )
+
 # save scene information to json file for submitter module to load
 scene_info = lux.getSceneInfo()
 opts = lux.getRenderOptions()
