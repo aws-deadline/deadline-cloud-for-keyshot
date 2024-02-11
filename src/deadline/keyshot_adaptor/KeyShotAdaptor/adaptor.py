@@ -187,11 +187,19 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
             completed_regexes = [re.compile(".*Finished Rendering.*")]
             progress_regexes = [re.compile(".*Rendering: ([0-9]+)%.*")]
             error_regexes = [re.compile(".*Error: .*|.*\\[Error\\].*", re.IGNORECASE)]
+            video_output_error_regexes = [
+                re.compile(
+                    ".*You cannot use EXR, TIFF 32 or PSD for the frames when encoding a movie!.*"
+                )
+            ]
 
             callback_list.append(RegexCallback(completed_regexes, self._handle_complete))
             callback_list.append(RegexCallback(progress_regexes, self._handle_progress))
             if self.init_data.get("strict_error_checking", False):
                 callback_list.append(RegexCallback(error_regexes, self._handle_error))
+            callback_list.append(
+                RegexCallback(video_output_error_regexes, self._handle_video_encode_error)
+            )
 
             self._regex_callbacks = callback_list
         return self._regex_callbacks
@@ -237,6 +245,26 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
             RuntimeError: Always raises a runtime error to halt the adaptor.
         """
         self._exc_info = RuntimeError(f"KeyShot Encountered an Error: {match.group(0)}")
+
+    def _handle_video_encode_error(self, match: re.Match) -> None:
+        """
+        Callback for stdout that indicates video output was selected during submission.
+        There is an interaction in KeyShot 12 where having video output selected before
+        submitting results in KeyShot warning that video encoding can't be performed
+        with certain output formats, despite the adaptor never calling lux.encodeVideo()
+
+        Args:
+            match (re.Match): The match object from the regex pattern that was matched in the message
+
+        Raises:
+            RuntimeError: Always raises a runtime error to halt the adaptor.
+        """
+        self._exc_info = RuntimeError(
+            f"{match.group(0)}\n"
+            "This error is usually the result of Video Output being selected"
+            "in KeyShot under Render->Animation->Video Output before submitting.\n"
+            "To resolve please uncheck Video Output before submitting again."
+        )
 
     def _get_keyshot_client_path(self) -> str:
         """

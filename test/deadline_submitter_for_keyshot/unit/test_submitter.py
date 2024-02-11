@@ -18,8 +18,6 @@ def test_render_settings():
     a.input_filenames = ["Test Input Filenames"]
     a.input_directories = ["Test Input Directories"]
     a.output_directories = ["Test Output Directories"]
-    a.include_alpha = True
-    a.render_layers = True
     a.include_adaptor_wheels = True
     _, path = tempfile.mkstemp(suffix="json", text=True)
     a.save_sticky_settings(path)

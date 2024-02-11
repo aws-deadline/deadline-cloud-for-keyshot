@@ -31,9 +31,6 @@ class RenderSubmitterUISettings:
     input_directories: list[str] = field(default_factory=list, metadata={"sticky": True})
     output_directories: list[str] = field(default_factory=list, metadata={"sticky": True})
 
-    include_alpha: bool = field(default=False, metadata={"sticky": True})
-    render_layers: bool = field(default=False, metadata={"sticky": True})
-
     # developer options
     include_adaptor_wheels: bool = field(default=False, metadata={"sticky": True})
 
