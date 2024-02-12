@@ -54,28 +54,6 @@ parameterDefinitions:
     control: DROPDOWN_LIST
     label: Output Format(Must match file extension)
     groupLabel: KeyShot Settings
-- name: IncludeAlpha
-  type: STRING
-  userInterface:
-    control: CHECK_BOX
-    label: Include Alpha (Transparency)
-    groupLabel: KeyShot Settings
-  description: Include alpha channel
-  default: 'true'
-  allowedValues:
-  - 'true'
-  - 'false'
-- name: RenderLayers
-  type: STRING
-  userInterface:
-    control: CHECK_BOX
-    label: Render Layers
-    groupLabel: KeyShot Settings
-  description: Include all render layers
-  default: 'true'
-  allowedValues:
-  - 'true'
-  - 'false'
 steps:
 - name: Render
   parameterSpace:

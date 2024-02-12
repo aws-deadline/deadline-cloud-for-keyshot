@@ -58,13 +58,6 @@ def _get_parameter_values(
     parameter_values.append({"name": "OutputFilePath", "value": settings.output_file_path})
     parameter_values.append({"name": "OutputFormat", "value": settings.output_format})
 
-    parameter_values.append(
-        {"name": "IncludeAlpha", "value": "true" if settings.include_alpha else "false"}
-    )
-    parameter_values.append(
-        {"name": "RenderLayers", "value": "true" if settings.render_layers else "false"}
-    )
-
     if settings.override_frame_range:
         frame_list = settings.frame_list
     else:
