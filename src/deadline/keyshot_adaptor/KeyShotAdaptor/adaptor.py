@@ -10,7 +10,7 @@ import time
 from functools import wraps
 from typing import Callable
 
-from openjd.adaptor_runtime.adaptors import Adaptor, AdaptorDataValidators
+from openjd.adaptor_runtime.adaptors import Adaptor, AdaptorDataValidators, SemanticVersion
 from openjd.adaptor_runtime.adaptors.configuration import AdaptorConfiguration
 from openjd.adaptor_runtime.process import LoggingSubprocess
 from openjd.adaptor_runtime.app_handlers import RegexCallback, RegexHandler
@@ -70,6 +70,10 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
     # Will be optionally changed after the scene is set.
     _expected_outputs: int = 1  # Total number of renders to perform.
     _produced_outputs: int = 0  # Counter for tracking number of complete renders.
+
+    @property
+    def integration_data_interface_version(self) -> SemanticVersion:
+        return SemanticVersion(major=0, minor=1)
 
     @staticmethod
     def _get_timer(timeout: int | float) -> Callable[[], bool]:

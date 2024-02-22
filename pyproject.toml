@@ -11,10 +11,12 @@ requires-python = ">=3.9"
 
 dependencies = [
     "deadline == 0.37.*",
-    "openjd-adaptor-runtime == 0.4.*",
+    "openjd-adaptor-runtime == 0.5.*",
 ]
 
 [project.scripts]
+keyshot-openjd = "deadline.keyshot_adaptor.KeyShotAdaptor:main"
+# KeyShotAdaptor is deprecated, use keyshot-openjd instead
 KeyShotAdaptor = "deadline.keyshot_adaptor.KeyShotAdaptor:main"
 
 [tool.hatch.build]
