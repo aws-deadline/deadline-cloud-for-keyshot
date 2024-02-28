@@ -12,9 +12,9 @@ This package has two active branches:
     - e.g. On Windows `C:/Users/<USER>/Documents/KeyShot 12/Scripts`
 3. Set the following environment variables
     - Set the environment variable `DEADLINE_PYTHON` as the path to the Python installation where deadline-cloud and PySide2 were installed in step 1.
-      - e.g. On Windows if using Python 3.10 it might be `set DEADLINE_PYTHON="C:/Users/<USER>/AppData/Local/Programs/Python/Python310/python"`
+      - e.g. On Windows if using Python 3.10 it might be `set DEADLINE_PYTHON=C:/Users/<USER>/AppData/Local/Programs/Python/Python310/python`
     - Set the environment variable `DEADLINE_KEYSHOT` as the path to the `<PATH TO>/deadline-cloud-for-keyshot/src/deadline/keyshot_submitter` folder
-      - e.g. On Windows if the source was on the user's desktop it might be  `set DEADLINE_KEYSHOT="C:/Users/<USER>/Desktop/deadline-cloud-for-keyshot/src/deadline/keyshot_submitter"`
+      - e.g. On Windows if the source was on the user's desktop it might be  `set DEADLINE_KEYSHOT=C:/Users/<USER>/Desktop/deadline-cloud-for-keyshot/src/deadline/keyshot_submitter`
 4. Launch KeyShot with the environment variables from step 3. set.
 5. The submitter can be launched within KeyShot from `Windows > Scripting Console > DeadlineCloudSubmitter > Run`
 
@@ -32,6 +32,11 @@ This package has two active branches:
     ```
     set DEADLINE_CLOUD_PYTHONPATH=C:/Users/<USER>/workervenv/Lib/site-packages/openjd;C:/Users/<USER>/workervenv/Lib/site-packages/deadline;C:/Users/<USER>/workervenv/Lib/site-packages/pywin32_system32;C:/Users/<USER>/workervenv/Lib/site-packages/win32;C:/Users/<USER>/workervenv/Lib/site-packages/win32/lib;C:/Users/<USER>/workervenv/Lib/site-packages/pythonwin
     ```
+3. The adaptor expects the keyshot_headless executable is available through the PATH environment variable.  
+    e.g. Local install: `setx PATH "%LOCALAPPDATA%\KeyShot12\bin;%PATH%"`  
+    e.g. System install: `setx PATH "%PROGRAMFILES%\KeyShot12\bin;%PATH%"`
+
+    Verify by running `keyshot_headless -h`
 
 ## Development
 
