@@ -21,6 +21,7 @@ from .data_classes import (
     RenderSubmitterUISettings,
 )
 from .ui.components.scene_settings_tab import SceneSettingsWidget
+from ._version import version_tuple as adaptor_version_tuple
 
 
 def show_submitter(info_file):
@@ -108,6 +109,7 @@ def _show_submitter(data, parent=None, f=Qt.WindowFlags()):
         default_job_template = yaml.safe_load(fh)
 
     render_settings = RenderSubmitterUISettings()
+    keyshot_version: str = data["version"]
     scene_name = data["scene"]["file"]
     if data["animation"].get("frames", None):
         frames = "%s-%s" % (1, data["animation"]["frames"])
@@ -173,10 +175,16 @@ def _show_submitter(data, parent=None, f=Qt.WindowFlags()):
         output_directories=set(render_settings.output_directories),
     )
 
+    keyshot_major_version: str = keyshot_version.split(".")[0]
+    adaptor_version: str = ".".join(str(v) for v in adaptor_version_tuple[:2])
+    conda_packages: str = f"keyshot={keyshot_major_version}.* keyshot-openjd={adaptor_version}.*"
+
     submitter_dialog = SubmitJobToDeadlineDialog(
         job_setup_widget_type=SceneSettingsWidget,
         initial_job_settings=render_settings,
-        initial_shared_parameter_values={},
+        initial_shared_parameter_values={
+            "CondaPackages": conda_packages,
+        },
         auto_detected_attachments=auto_detected_attachments,
         attachments=attachments,
         on_create_job_bundle_callback=on_create_job_bundle_callback,
