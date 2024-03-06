@@ -63,7 +63,7 @@ explicit_package_bases = true
 mypy_path = "src"
 
 [[tool.mypy.overrides]]
-module = ["PySide2.*"]
+module = ["lux.*", "PySide2.*"]
 ignore_missing_imports = true
 
 [tool.ruff]

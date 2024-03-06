@@ -29,6 +29,7 @@ if not DEADLINE_KEYSHOT:
     )
 
 # save scene information to json file for submitter module to load
+keyshot_version = ".".join([str(v) for v in lux.getKeyShotVersion()])
 scene_info = lux.getSceneInfo()
 opts = lux.getRenderOptions()
 opts_dict = opts.getDict()
@@ -37,6 +38,7 @@ animation_info = lux.getAnimationInfo()
 external_files = lux.getExternalFiles()
 
 lux_info = {
+    "version": keyshot_version,
     "scene": scene_info,
     "render": opts_dict,
     "frame": current_frame,
