@@ -1,3 +1,12 @@
+## 0.0.4 (2024-03-08)
+
+
+### Features
+* add conda packages to keyshot submitter (#27) ([`f538c1a`](https://github.com/casillas2/deadline-cloud-for-keyshot/commit/f538c1a7765a56955cfb6e57bec35b0551ae9c53))
+
+### Bug Fixes
+* update README adaptor instructions (#24) ([`4b6d201`](https://github.com/casillas2/deadline-cloud-for-keyshot/commit/4b6d20179e0368f57b67d08dacc7376b3364649b))
+
 ## 0.0.3 (2024-02-22)
 
 
