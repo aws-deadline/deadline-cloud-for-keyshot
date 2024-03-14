@@ -1,4 +1,4 @@
-# Amazon Deadline Cloud for KeyShot Development
+# AWS Deadline Cloud for KeyShot Development
 
 ## `hatch` commands
 To develop this package, you'll need Python with `hatch` installed to start.
