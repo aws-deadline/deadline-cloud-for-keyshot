@@ -1,4 +1,4 @@
-# Amazon Deadline Cloud for KeyShot
+# AWS Deadline Cloud for KeyShot
 
 This package has two active branches:
 
