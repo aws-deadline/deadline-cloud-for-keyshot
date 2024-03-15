@@ -1,3 +1,8 @@
+## 0.0.5 (2024-03-15)
+
+### Chores
+* update deps deadline-cloud 0.40 (#35) ([`cebd1c4`](https://github.com/casillas2/deadline-cloud-for-keyshot/commit/cebd1c4fdf9633aa0691b517f6b4092264943f69))
+
 ## 0.0.4 (2024-03-08)
 
 
