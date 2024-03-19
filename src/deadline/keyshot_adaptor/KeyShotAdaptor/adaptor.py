@@ -10,12 +10,16 @@ import time
 from functools import wraps
 from typing import Callable
 
+from deadline.client.api import get_deadline_cloud_library_telemetry_client, TelemetryClient
+from openjd.adaptor_runtime._version import version as openjd_adaptor_version
 from openjd.adaptor_runtime.adaptors import Adaptor, AdaptorDataValidators, SemanticVersion
 from openjd.adaptor_runtime.adaptors.configuration import AdaptorConfiguration
 from openjd.adaptor_runtime.process import LoggingSubprocess
 from openjd.adaptor_runtime.app_handlers import RegexCallback, RegexHandler
 from openjd.adaptor_runtime.application_ipc import ActionsQueue, AdaptorServer
 from openjd.adaptor_runtime_client import Action
+
+from .._version import version as adaptor_version
 
 _logger = logging.getLogger(__name__)
 
@@ -65,6 +69,8 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
     _performing_cleanup = False
     _regex_callbacks: list | None = None
     _validators: AdaptorDataValidators | None = None
+    _telemetry_client: TelemetryClient | None = None
+    _keyshot_version: str = ""
 
     # Variables used for keeping track of produced outputs for progress reporting.
     # Will be optionally changed after the scene is set.
@@ -196,6 +202,8 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
                     ".*You cannot use EXR, TIFF 32 or PSD for the frames when encoding a movie!.*"
                 )
             ]
+            # Capture the major minor patch version.
+            version_regexes = [re.compile("KeyShotClient: KeyShot Version ([0-9]+.[0-9]+.[0-9]+)")]
 
             callback_list.append(RegexCallback(completed_regexes, self._handle_complete))
             callback_list.append(RegexCallback(progress_regexes, self._handle_progress))
@@ -204,6 +212,7 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
             callback_list.append(
                 RegexCallback(video_output_error_regexes, self._handle_video_encode_error)
             )
+            callback_list.append(RegexCallback(version_regexes, self._handle_version))
 
             self._regex_callbacks = callback_list
         return self._regex_callbacks
@@ -269,6 +278,14 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
             "in KeyShot under Render->Animation->Video Output before submitting.\n"
             "To resolve please uncheck Video Output before submitting again."
         )
+
+    def _handle_version(self, match: re.Match) -> None:
+        """
+        Callback for stdout that records the KeyShot version.
+        Args:
+            match (re.Match): The match object from the regex pattern that was matched the message
+        """
+        self._keyshot_version = match.groups()[0]
 
     def _get_keyshot_client_path(self) -> str:
         """
@@ -364,6 +381,10 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
 
             time.sleep(0.1)  # busy wait for keyshot to finish initialization
 
+        self._get_deadline_telemetry_client().record_event(
+            event_type="com.amazon.rum.deadline.adaptor.runtime.start", event_details={}
+        )
+
         if len(self._action_queue) > 0:
             raise RuntimeError(
                 "KeyShot encountered an error and was not able to complete initialization actions."
@@ -452,3 +473,18 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
         for name in _FIRST_KEYSHOT_ACTIONS:
             if name in self.init_data:
                 self._action_queue.enqueue_action(Action(name, {name: self.init_data[name]}))
+
+    def _get_deadline_telemetry_client(self):
+        """
+        Wrapper around the Deadline Client Library telemetry client, in order to set package-specific information
+        """
+        if not self._telemetry_client:
+            self._telemetry_client = get_deadline_cloud_library_telemetry_client()
+            self._telemetry_client.update_common_details(
+                {
+                    "deadline-cloud-for-keyshot-adaptor-version": adaptor_version,
+                    "keyshot-version": self._keyshot_version,
+                    "open-jd-adaptor-runtime-version": openjd_adaptor_version,
+                }
+            )
+        return self._telemetry_client

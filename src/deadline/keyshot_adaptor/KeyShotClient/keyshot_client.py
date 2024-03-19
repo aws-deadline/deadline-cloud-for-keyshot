@@ -1,5 +1,6 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 from __future__ import annotations
+import lux
 import sys
 import os
 
@@ -38,6 +39,8 @@ class KeyShotClient(ClientInterface):
 
     def __init__(self, server_path: str) -> None:
         super().__init__(server_path=server_path)
+        version_str: str = ".".join(str(v) for v in lux.getKeyShotVersion()[:3])
+        print(f"KeyShotClient: KeyShot Version {version_str}")
         self.actions.update(KeyShotHandler().action_dict)
 
     def close(self, args: Optional[dict] = None) -> None:

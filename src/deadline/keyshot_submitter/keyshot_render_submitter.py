@@ -8,6 +8,7 @@ from copy import deepcopy
 
 from PySide2 import QtWidgets
 
+from deadline.client import api
 from deadline.client.job_bundle.submission import AssetReferences
 from deadline.client.job_bundle._yaml import deadline_yaml_dump
 from deadline.client.ui.dialogs.submit_job_to_deadline_dialog import (  # pylint: disable=import-error
@@ -21,7 +22,7 @@ from .data_classes import (
     RenderSubmitterUISettings,
 )
 from .ui.components.scene_settings_tab import SceneSettingsWidget
-from ._version import version_tuple as adaptor_version_tuple
+from ._version import version, version_tuple as adaptor_version_tuple
 
 
 def show_submitter(info_file):
@@ -115,6 +116,14 @@ def _show_submitter(data, parent=None, f=Qt.WindowFlags()):
         frames = "%s-%s" % (1, data["animation"]["frames"])
     else:
         frames = "%s" % data["frame"]
+
+    # Initialize telemetry client, opt-out is respected
+    api.get_deadline_cloud_library_telemetry_client().update_common_details(
+        {
+            "deadline-cloud-for-keyshot-submitter-version": version,
+            "keyshot-version": keyshot_version,
+        }
+    )
 
     # Set the setting defaults that come from the scene
     render_settings.output_folder = str(Path(scene_name).parent)
