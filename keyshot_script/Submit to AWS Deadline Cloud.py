@@ -1,6 +1,6 @@
 # AUTHOR AWS
 # VERSION 0.0.0
-# Submit to Deadline Cloud
+# Submit to AWS Deadline Cloud
 
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 import os

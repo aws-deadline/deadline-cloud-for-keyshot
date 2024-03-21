@@ -13,7 +13,7 @@
             <platforms>all</platforms>
             <distributionFileList>
                 <distributionFile>
-                    <origin>components/deadline-cloud-for-keyshot/keyshot_script/DeadlineCloudSubmitter.py</origin>
+                    <origin>components/deadline-cloud-for-keyshot/keyshot_script/Submit to AWS Deadline Cloud.py</origin>
                 </distributionFile>
             </distributionFileList>
         </folder>
