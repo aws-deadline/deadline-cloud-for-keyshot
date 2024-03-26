@@ -1,3 +1,10 @@
+## 0.0.6 (2024-03-26)
+
+
+### Features
+* Adds telemetry events to submitter and adaptor (#40) ([`00ff0cd`](https://github.com/casillas2/deadline-cloud-for-keyshot/commit/00ff0cd670cef61519851d4c4d91d56b64739585))
+
+
 ## 0.0.5 (2024-03-15)
 
 ### Chores
