@@ -68,7 +68,8 @@ steps:
   script:
     actions:
       onRun:
-        command: '{{Task.File.Run}}'
+        command: powershell
+        args: ["-File", "{{Task.File.Run}}"]
     embeddedFiles:
       - name: headlessScript
         filename: headlessScript.py
@@ -90,4 +91,6 @@ steps:
         filename: run.ps1
         type: TEXT
         data: |
-          keyshot_headless -progress -floating_license_server '@localhost' -floating_feature keyshot2 '{{Param.KeyShotFile}}' -script '{{Task.File.headlessScript}}'
+          # Licensing should be configured using a floating license server specified
+          # by setting the environment variable LUXION_LICENSE_FILE=<PORT>:<ADDRESS>
+          keyshot_headless -progress -floating_feature keyshot2 '{{Param.KeyShotFile}}' -script '{{Task.File.headlessScript}}'

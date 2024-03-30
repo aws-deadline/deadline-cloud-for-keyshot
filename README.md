@@ -32,7 +32,9 @@ This package has two active branches:
     ```
     set DEADLINE_CLOUD_PYTHONPATH=C:/Users/<USER>/workervenv/Lib/site-packages/openjd;C:/Users/<USER>/workervenv/Lib/site-packages/deadline;C:/Users/<USER>/workervenv/Lib/site-packages/pywin32_system32;C:/Users/<USER>/workervenv/Lib/site-packages/win32;C:/Users/<USER>/workervenv/Lib/site-packages/win32/lib;C:/Users/<USER>/workervenv/Lib/site-packages/pythonwin
     ```
-3. The adaptor expects the keyshot_headless executable is available through the PATH environment variable.  
+3. Configure licensing for KeyShot by setting the environment variable `LUXION_LICENSE_FILE=<PORT>:<ADDRESS>` to point towards the license server to use
+    e.g. `setx LUXION_LICENSE_FILE "2703@127.0.0.1"`
+4. The adaptor expects the keyshot_headless executable is available through the PATH environment variable.
     e.g. Local install: `setx PATH "%LOCALAPPDATA%\KeyShot12\bin;%PATH%"`  
     e.g. System install: `setx PATH "%PROGRAMFILES%\KeyShot12\bin;%PATH%"`
 
