@@ -337,10 +337,6 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
 
         keyshot_client_path = self._get_keyshot_client_path()
         args.append("-progress")
-        # For now we will assume that a floating license server is being used
-        # with the default port and a pro license for KeyShot
-        args.append("-floating_license_server")
-        args.append("@localhost")
         args.append("-floating_feature")
         args.append("keyshot2")
         args.append("-script")

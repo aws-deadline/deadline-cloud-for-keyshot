@@ -20,7 +20,7 @@ DEADLINE_KEYSHOT = os.getenv("DEADLINE_KEYSHOT")
 
 if not DEADLINE_PYTHON:
     raise RuntimeError(
-        "Environment variable DEADLINE_PYTHON not set. Please set DEADLINE_PYTHON to point to an installed version of Python with Pyside2."
+        "Environment variable DEADLINE_PYTHON not set. Please set DEADLINE_PYTHON to point to an installation of Python with deadline and Pyside2 installed."
     )
 
 if not DEADLINE_KEYSHOT:
