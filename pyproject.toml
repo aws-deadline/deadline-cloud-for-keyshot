@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "deadline-cloud-for-keyshot"
-description = "The submitter and adaptor to enable KeyShot support for AWS Deadline Cloud"
+description = "AWS Deadline Cloud for KeyShot"
 authors = [
   {name = "Amazon Web Services"},
 ]
