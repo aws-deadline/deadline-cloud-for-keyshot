@@ -4,11 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "deadline-cloud-for-keyshot"
+description = "The submitter and adaptor to enable KeyShot support for AWS Deadline Cloud"
+authors = [
+  {name = "Amazon Web Services"},
+]
 dynamic = ["version"]
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.9"
-description = "The submitter and adaptor to enable Keyshot support for AWS Deadline Cloud"
 # https://pypi.org/classifiers/
 classifiers = [
   "Development Status :: 5 - Production/Stable",
@@ -29,6 +32,10 @@ dependencies = [
     "deadline == 0.45.*",
     "openjd-adaptor-runtime == 0.6.*",
 ]
+
+[project.urls]
+Homepage = "https://github.com/aws-deadline/deadline-cloud-for-keyshot"
+Source = "https://github.com/aws-deadline/deadline-cloud-for-keyshot"
 
 [project.scripts]
 keyshot-openjd = "deadline.keyshot_adaptor.KeyShotAdaptor:main"
