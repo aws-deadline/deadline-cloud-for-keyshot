@@ -1,3 +1,11 @@
+## 0.1.0 (2024-04-01)
+
+### BREAKING CHANGES
+* public release (#53) ([`91378c3`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/91378c39e58f6eeadc67900a430c802601852b74))
+* update licensing configuration and instructions (#52) ([`f44650e`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/f44650e2299864a9dd3dfab28efb2dff89c6d7df))
+
+
+
 ## 0.0.6 (2024-03-26)
 
 
