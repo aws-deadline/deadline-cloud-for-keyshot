@@ -84,7 +84,7 @@
                             </actionList>
                             <elseActionList>
                                 <setInstallerVariable name="keyshot_scripts_folder" value="${keyshot_installdir}" />
-                                <showWarning text="No installation of KeyShot 12 was found. Please manually move the DeadlineCloudSubmitter.py script into the KeyShot scripts folder to use the plug-in." />
+                                <showWarning text="No installation of KeyShot 12 was found. Please manually move the 'Submit to AWS Deadline Cloud.py' script into the KeyShot scripts folder to use the plug-in." />
                             </elseActionList>
                         </if>
                     </elseActionList>
@@ -107,7 +107,7 @@
                     </actionList>
                     <elseActionList>
                         <setInstallerVariable name="keyshot_scripts_folder" value="${keyshot_installdir}" />
-                        <showWarning text="No installation of KeyShot 12 was found. Please manually move the DeadlineCloudSubmitter.py script into the KeyShot scripts folder to use the plug-in." />
+                        <showWarning text="No installation of KeyShot 12 was found. Please manually move the 'Submit to AWS Deadline Cloud.py' script into the KeyShot scripts folder to use the plug-in." />
                     </elseActionList>
                 </if>
             </actionList>
@@ -117,8 +117,8 @@
         <stringParameter name="deadline_cloud_for_keyshot_summary" ask="0" cliOptionShow="0">
             <value>Deadline Cloud for KeyShot
 - Install the integrated KeyShot submitter files to the installation directory
-- Register the plug-in with KeyShot by moving the DeadlineCloudSubmitter script to the KeyShot scripts folder
-- Sets the DEADLINE_KEYSHOT environment variable to point the DeadlineCloudSubmitter script to the submitter module
+- Register the plug-in with KeyShot by moving the Submit to AWS Deadline Cloud script to the KeyShot scripts folder
+- Sets the DEADLINE_KEYSHOT environment variable to point the Submit to AWS Deadline Cloud script to the submitter module
             </value>
         </stringParameter>
     </parameterList>
