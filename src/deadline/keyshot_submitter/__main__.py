@@ -3,7 +3,7 @@ import sys
 import os
 
 # Retrieve the value of the environment variable DEADLINE_KEYSHOT that was
-# passed as part of subprocess.run() in DeadlineCloudSubmitter.py
+# passed as part of subprocess.run() in "Submit to AWS Deadline Cloud.py"
 deadline_keyshot = sys.argv[-2]
 
 if not deadline_keyshot:
@@ -20,5 +20,5 @@ if __name__ == "__main__":
     )
 
     # Launch the submitter using the info file passed from the call to
-    # subprocess.run() in DeadlineCloudSubmitter.py
+    # subprocess.run() in "Submit to AWS Deadline Cloud.py"
     show_submitter(sys.argv[-1])
