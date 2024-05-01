@@ -1,3 +1,10 @@
+## 0.1.1 (2024-05-01)
+
+
+
+### Bug Fixes
+* update missed renames (#63) ([`d5d58b7`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/d5d58b739ee43d3a778ac3e774bfa0975f42bf90))
+
 ## 0.1.0 (2024-04-01)
 
 ### BREAKING CHANGES
