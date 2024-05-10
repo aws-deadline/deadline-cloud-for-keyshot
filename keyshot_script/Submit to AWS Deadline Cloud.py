@@ -20,7 +20,7 @@ DEADLINE_KEYSHOT = os.getenv("DEADLINE_KEYSHOT")
 
 if not DEADLINE_PYTHON:
     raise RuntimeError(
-        "Environment variable DEADLINE_PYTHON not set. Please set DEADLINE_PYTHON to point to an installation of Python with deadline and Pyside2 installed."
+        "Environment variable DEADLINE_PYTHON not set. Please set DEADLINE_PYTHON to point to an installation of Python with deadline and Pyside6 installed."
     )
 
 if not DEADLINE_KEYSHOT:
@@ -52,7 +52,15 @@ with open(info_file, "w") as f:
 
 
 def show_submitter():
-    subprocess.run([DEADLINE_PYTHON, DEADLINE_KEYSHOT, info_file])
+    try:
+        subprocess.run(
+            [DEADLINE_PYTHON, DEADLINE_KEYSHOT, info_file],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"AWS Deadline Cloud KeyShot submitter could not open: {e.stderr}")
 
 
 show_submitter()
