@@ -1,3 +1,10 @@
+## 0.1.2 (2024-05-22)
+
+
+### Features
+* swap to qtpy and support pyside6 (#78) ([`9fc9bf7`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/9fc9bf79f3e5091dd40e7fc0e2d620cc8b46a8e2))
+
+
 ## 0.1.1 (2024-05-01)
 
 
