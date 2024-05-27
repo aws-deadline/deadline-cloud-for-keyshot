@@ -29,7 +29,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "deadline == 0.47.*",
+    "deadline == 0.48.*",
     "openjd-adaptor-runtime == 0.7.*",
 ]
 
@@ -86,7 +86,7 @@ explicit_package_bases = true
 mypy_path = "src"
 
 [[tool.mypy.overrides]]
-module = ["lux.*", "PySide2.*"]
+module = ["lux.*", "qtpy.*"]
 ignore_missing_imports = true
 
 [tool.ruff]

@@ -6,7 +6,7 @@ from typing import Any, Optional
 import yaml  # type: ignore[import]
 from copy import deepcopy
 
-from PySide2 import QtWidgets
+from qtpy import QtWidgets
 
 from deadline.client import api
 from deadline.client.job_bundle.submission import AssetReferences
@@ -16,7 +16,7 @@ from deadline.client.ui.dialogs.submit_job_to_deadline_dialog import (  # pylint
     JobBundlePurpose,
 )
 from deadline.client.exceptions import DeadlineOperationError
-from PySide2.QtCore import Qt  # pylint: disable=import-error
+from qtpy.QtCore import Qt  # type: ignore
 
 from .data_classes import (
     RenderSubmitterUISettings,

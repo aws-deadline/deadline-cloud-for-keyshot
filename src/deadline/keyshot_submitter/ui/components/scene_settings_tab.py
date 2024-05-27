@@ -2,8 +2,8 @@
 import os
 from pathlib import Path
 
-from PySide2.QtCore import QSize, Qt  # type: ignore
-from PySide2.QtWidgets import (  # type: ignore
+from qtpy.QtCore import QSize, Qt  # type: ignore
+from qtpy.QtWidgets import (  # type: ignore
     QComboBox,
     QCheckBox,
     QFileDialog,
@@ -53,7 +53,6 @@ class FileSearchLineEdit(QWidget):
 
         lyt = QHBoxLayout(self)
         lyt.setContentsMargins(0, 0, 0, 0)
-        lyt.setMargin(0)
 
         self.edit = QLineEdit(self)
         self.btn = QPushButton("...", parent=self)
@@ -186,7 +185,7 @@ class SceneSettingsWidget(QWidget):
         """
         Set the activated/deactivated status of the Frame override text box
         """
-        self.frame_override_txt.setEnabled(state == Qt.Checked)
+        self.frame_override_txt.setEnabled(Qt.CheckState(state) == Qt.Checked)
 
     def output_file_path_changed(self):
         """
