@@ -35,7 +35,7 @@ This package provides a KeyShot plugin script that creates jobs for AWS Deadline
     - Set the environment variable `DEADLINE_KEYSHOT` as the path to the `<PATH TO>/deadline-cloud-for-keyshot/src/deadline/keyshot_submitter` folder
       - e.g. On Windows if the source was on the user's desktop it might be  `set DEADLINE_KEYSHOT=C:/Users/<USER>/Desktop/deadline-cloud-for-keyshot/src/deadline/keyshot_submitter`
 4. Launch KeyShot with the environment variables from step 3. set.
-5. The submitter can be launched within KeyShot from `Windows > Scripting Console > Submit to AWS Deadline Cloud > Run`
+5. The submitter can be launched within KeyShot from `Window > Scripting Console > Scripts > Submit to AWS Deadline Cloud > Run`
 
 ## Adaptor
 
