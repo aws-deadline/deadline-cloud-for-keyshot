@@ -15,7 +15,7 @@ AWS Deadline Cloud for KeyShot is a python package that allows users to create [
 ## Compatibility
 
 This library requires:
-1. KeyShot 2023
+1. KeyShot 2023 or 2024
 1. Python 3.9 or higher; and
 1. Windows, or a macOS operating system.
 
@@ -28,7 +28,7 @@ This package provides a KeyShot plugin script that creates jobs for AWS Deadline
 1. Install deadline and Pyside6
     - e.g. `pip install deadline[gui]`
 2. Copy or link the file `deadline-cloud-for-keyshot/keyshot_script/Submit to AWS Deadline Cloud.py` to the KeyShot scripts folder.
-    - e.g. On Windows `C:/Users/<USER>/Documents/KeyShot 12/Scripts`
+    - e.g. On Windows `C:/Users/<USER>/Documents/KeyShot/Scripts`
 3. Set the following environment variables
     - Set the environment variable `DEADLINE_PYTHON` as the path to the Python installation where deadline-cloud and PySide2 were installed in step 1.
       - e.g. On Windows if using Python 3.10 it might be `set DEADLINE_PYTHON=C:/Users/<USER>/AppData/Local/Programs/Python/Python310/python`
@@ -70,8 +70,8 @@ Jobs created by the submitter use this adaptor by default.
 3. Configure licensing for KeyShot by setting the environment variable `LUXION_LICENSE_FILE=<PORT>:<ADDRESS>` to point towards the license server to use
     - e.g. `setx LUXION_LICENSE_FILE "2703@127.0.0.1"`
 4. The adaptor expects the keyshot_headless executable is available through the PATH environment variable.
-    - e.g. Local install: `setx PATH "%LOCALAPPDATA%\KeyShot12\bin;%PATH%"`
-    - e.g. System install: `setx PATH "%PROGRAMFILES%\KeyShot12\bin;%PATH%"`
+    - e.g. Local install: `setx PATH "%LOCALAPPDATA%\KeyShot\bin;%PATH%"`
+    - e.g. System install: `setx PATH "%PROGRAMFILES%\KeyShot\bin;%PATH%"`
     - Verify by running `keyshot_headless -h`
 
 ## Versioning
