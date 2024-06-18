@@ -1,7 +1,9 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 import os
 import tempfile
-import mock_lux  # noqa: F401
+
+
+import mock_lux  # type: ignore[import-not-found] # noqa: F401
 
 deadline = __import__("deadline.keyshot_submitter.Submit to AWS Deadline Cloud")
 submitter = getattr(deadline.keyshot_submitter, "Submit to AWS Deadline Cloud")
