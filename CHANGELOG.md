@@ -1,3 +1,10 @@
+## 0.1.3 (2024-06-19)
+
+
+### Features
+* add KeyShot 2024 support (#91) ([`d6d2dfa`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/d6d2dfa6b2758b0acfd8f4c13a5d32bde2a2ca0a))
+
+
 ## 0.1.2 (2024-05-22)
 
 
