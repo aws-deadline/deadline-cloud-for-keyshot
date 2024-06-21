@@ -1,5 +1,5 @@
 # AUTHOR AWS
-# VERSION 0.0.6
+# VERSION 0.1.3
 # Submit to AWS Deadline Cloud
 
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
