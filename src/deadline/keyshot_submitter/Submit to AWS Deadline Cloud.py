@@ -3,16 +3,84 @@
 # Submit to AWS Deadline Cloud
 
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-import glob
+from dataclasses import dataclass
 import json
 import os
+from pathlib import Path
 import platform
 import shlex
 import subprocess
 import tempfile
-from typing import Optional, Tuple
+from typing import Any, Optional
 
 import lux
+
+RENDER_SUBMITTER_SETTINGS_FILE_EXT = ".deadline_render_settings.json"
+
+
+@dataclass
+class Settings:
+    scene_file: str
+    frames: str
+    output_file_path: str
+    output_format: str
+    input_filenames: list[str]
+    input_directories: list[str]
+    output_directories: list[str]
+    referenced_paths: list[str]
+    auto_detected_input_filenames: list[str]
+    auto_detected_output_directories: list[str]
+
+    def to_dict(self):
+        return {
+            "frames": self.frames,
+            "outputFilePath": self.output_file_path,
+            "outputFormat": self.output_format,
+            "inputFilenames": self.input_filenames,
+            "inputDirectories": self.input_directories,
+            "outputDirectories": self.output_directories,
+            "referencedPaths": self.referenced_paths,
+            # Do not include auto-detected inputs and outputs since they should not be sticky
+        }
+
+    def apply_sticky_settings(self, sticky_settings: dict):
+        self.frames = sticky_settings.get("frames", self.frames)
+        self.output_file_path = sticky_settings.get("outputFilePath", self.output_file_path)
+        self.output_format = sticky_settings.get("outputFormat", self.output_format)
+        self.input_filenames = sticky_settings.get("inputFilenames", self.input_filenames)
+        self.input_directories = sticky_settings.get("inputDirectories", self.input_directories)
+        self.output_directories = sticky_settings.get("outputDirectories", self.output_directories)
+        self.referenced_paths = sticky_settings.get("referencedPaths", self.referenced_paths)
+
+    def apply_submitter_settings(self, output: dict):
+        parameters: dict[str, str] = {}
+        for parameter in output.get("parameterValues", []):
+            parameters[parameter["name"]] = parameter["value"]
+
+        if parameters.get("Frames"):
+            self.frames = parameters["Frames"]
+        if parameters.get("OutputFilePath"):
+            self.output_file_path = parameters["OutputFilePath"]
+        if parameters.get("OutputFormat"):
+            self.output_format = parameters["OutputFormat"]
+        if parameters.get("Frames"):
+            self.frames = parameters["Frames"]
+        if output.get("assetReferences", {}).get("inputs", {}).get("filenames"):
+            # Persist input files that were not autodetected (i.e. were manually added)
+            self.input_filenames = list(
+                set(output["assetReferences"]["inputs"]["filenames"])
+                - set(self.auto_detected_input_filenames)
+            )
+        if output.get("assetReferences", {}).get("inputs", {}).get("directories"):
+            self.input_directories = output["assetReferences"]["inputs"]["directories"]
+        if output.get("assetReferences", {}).get("outputs", {}).get("directories"):
+            # Persist output directories that were not autodetected (i.e. were manually added)
+            self.output_directories = list(
+                set(output["assetReferences"]["outputs"]["directories"])
+                - set(self.auto_detected_output_directories)
+            )
+        if output.get("assetReferences", {}).get("referencedPaths"):
+            self.referenced_paths = output["assetReferences"]["referencedPaths"]
 
 
 def construct_job_template(filename: str) -> dict:
@@ -162,35 +230,39 @@ def construct_job_template(filename: str) -> dict:
     }
 
 
-def construct_asset_references(
-    input_filenames: list[str],
-    input_directories: list[str],
-    output_directories: list[str],
-    referenced_paths: list[str],
-) -> dict:
+def construct_asset_references(settings: Settings) -> dict:
     return {
         "assetReferences": {
             "inputs": {
-                "directories": sorted(input_directories),
-                "filenames": sorted(input_filenames),
+                "directories": sorted(settings.input_directories),
+                "filenames": sorted(
+                    list(set([*settings.input_filenames, *settings.auto_detected_input_filenames]))
+                ),
             },
             "outputs": {
-                "directories": sorted(output_directories),
+                "directories": sorted(
+                    list(
+                        set(
+                            [
+                                *settings.output_directories,
+                                *settings.auto_detected_output_directories,
+                            ]
+                        )
+                    )
+                ),
             },
-            "referencedPaths": sorted(referenced_paths),
+            "referencedPaths": sorted(settings.referenced_paths),
         }
     }
 
 
-def construct_parameter_values(
-    scene_file: str, frames: str, output_file_path: str, output_format: str
-) -> dict:
+def construct_parameter_values(settings: Settings) -> dict:
     return {
         "parameterValues": [
-            {"name": "KeyShotFile", "value": scene_file},
-            {"name": "OutputFilePath", "value": output_file_path},
-            {"name": "OutputFormat", "value": output_format},
-            {"name": "Frames", "value": frames},
+            {"name": "KeyShotFile", "value": settings.scene_file},
+            {"name": "OutputFilePath", "value": settings.output_file_path},
+            {"name": "OutputFormat", "value": settings.output_format},
+            {"name": "Frames", "value": settings.frames},
         ]
     }
 
@@ -200,89 +272,73 @@ def dump_json_to_dir(contents: dict, directory: str, filename: str) -> None:
         file.write(json.dumps(contents))
 
 
-def find_latest_scene_file_submission_bundle(scene_filename: str) -> Optional[str]:
-    """
-    Find the most recent submitted bundle that has the same name as this scene file
+def load_sticky_settings(scene_filename: str) -> Optional[dict]:
+    sticky_settings_filename = Path(scene_filename).with_suffix(RENDER_SUBMITTER_SETTINGS_FILE_EXT)
+    if sticky_settings_filename.exists() and sticky_settings_filename.is_file():
+        try:
+            with open(sticky_settings_filename, encoding="utf8") as f:
+                return json.load(f)
+        except (OSError, json.JSONDecodeError):
+            # Fall back to defaults if there's an error loading sticky settings
+            import traceback
 
-    Naming logic copied from the Deadline library but strips out the extension in case the user
-    adds a suffix to their job names, e.g. for different parameters
-    https://github.com/aws-deadline/deadline-cloud/blob/2d5f2d43f7c2adaba1f53b5b34d405b445a611c1/src/deadline/client/job_bundle/__init__.py#L38-L39
-    """
-    bundle_directory_name = "".join(
-        char for char in scene_filename.split(".")[0] if char.isalnum() or char in " -_"
-    )
-    bundle_directory_name = bundle_directory_name[:128]
-
-    matching_templates = glob.glob(
-        os.path.expanduser(f"~/.deadline/job_history/*/*/*{bundle_directory_name}*/template.*")
-    )
-
-    if not matching_templates:
-        return None
-
-    # Find the most recent template with a matching scene name, including across farms. Use file ctime
-    # instead of sorting based on path name because files are organized by farm before date.
-    latest_template = max(matching_templates, key=os.path.getctime)
-    latest_bundle, _ = os.path.split(latest_template)
-    return latest_bundle
+            traceback.print_exc()
+            print(
+                f"WARNING: Failed to load {sticky_settings_filename}. Reverting to the default settings."
+            )
+            pass
+    return None
 
 
-def get_settings_from_bundle(latest_bundle: str) -> Tuple[Optional[dict[str, str]], Optional[dict]]:
-    parameters = None
-    asset_references = None
-
-    try:
-        with open(os.path.join(latest_bundle, "parameter_values.json")) as f:
-            parameter_values = json.load(f)
-
-        parameters = {}
-        for param in parameter_values.get("parameterValues", []):
-            parameters[param["name"]] = param["value"]
-    except FileNotFoundError:
-        # No previous parameter values found, so there's nothing to load.
-        pass
-    except Exception as e:
-        print(f"Unable to load parameter values from latest bundle {latest_bundle}: {e}")
-
-    try:
-        with open(os.path.join(latest_bundle, "asset_references.json")) as f:
-            asset_references = json.load(f)["assetReferences"]
-    except FileNotFoundError:
-        # No previous asset refernces found, so there's nothing to load.
-        pass
-    except Exception as e:
-        print(f"Unable to load asset references from latest bundle {latest_bundle}: {e}")
-
-    return parameters, asset_references
+def save_sticky_settings(scene_file: str, settings: Settings):
+    sticky_settings_filename = Path(scene_file).with_suffix(RENDER_SUBMITTER_SETTINGS_FILE_EXT)
+    with open(sticky_settings_filename, "w", encoding="utf8") as f:
+        json.dump(settings.to_dict(), f, indent=2)
 
 
-def gui_submit(bundle_directory: str) -> None:
+def gui_submit(bundle_directory: str) -> Optional[dict[str, Any]]:
     try:
         if platform.system() == "Darwin" or platform.system() == "Linux":
             # Execute the command using an bash in interactive mode so it loads loads the bash profile to set
             # the PATH correctly. Attempting to run `deadline` directly will probably fail since Keyshot's default
             # PATH likely doesn't include the Deadline client.
             shell_executable = os.environ.get("SHELL", "/bin/bash")
-            subprocess.run(
+            result = subprocess.run(
                 [
                     shell_executable,
                     "-i",
                     "-c",
-                    f"deadline bundle gui-submit {shlex.quote(bundle_directory)}",
+                    f'echo "START_DEADLINE_OUTPUT";deadline bundle gui-submit {shlex.quote(bundle_directory)} --output json --extra-info',
                 ],
                 check=True,
                 capture_output=True,
                 text=True,
             )
+            # Hack to ignore any output from the bash profile script
+            output = result.stdout.split("START_DEADLINE_OUTPUT")[-1]
         else:
-            subprocess.run(
-                ["deadline", "bundle", "gui-submit", str(bundle_directory)],
+            result = subprocess.run(
+                [
+                    "deadline",
+                    "bundle",
+                    "gui-submit",
+                    str(bundle_directory),
+                    "--output",
+                    "json",
+                    "--extra-info",
+                ],
                 check=True,
                 capture_output=True,
                 text=True,
             )
+            output = result.stdout
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"AWS Deadline Cloud KeyShot submitter could not open: {e.stderr}")
+    try:
+        return json.loads(output)
+    except json.JSONDecodeError as e:
+        print(f"Error parsing settings file: {e}")
+        return None
 
 
 def main():
@@ -291,67 +347,39 @@ def main():
     current_frame = lux.getAnimationFrame()
     frame_count = lux.getAnimationInfo().get("frames")
 
-    frames = f"1-{frame_count}" if frame_count else f"{current_frame}"
-    input_filenames = [*external_files, scene_file]
-    input_directories: list[str] = []
-    output_directories = [str(os.path.dirname(scene_file))]
-    referenced_paths: list[str] = []
+    settings = Settings(
+        scene_file=scene_file,
+        frames=f"1-{frame_count}" if frame_count else f"{current_frame}",
+        input_filenames=[],
+        auto_detected_input_filenames=[*external_files, scene_file],
+        input_directories=[],
+        output_directories=[],
+        auto_detected_output_directories=[str(os.path.dirname(scene_file))],
+        referenced_paths=[],
+        output_file_path=f"{scene_file}.%d.png",
+        output_format="PNG",
+    )
 
     _, filename = os.path.split(scene_file)
 
-    output_file_path = f"{scene_file}.%d.png"
-    output_format = "PNG"
-
-    latest_bundle = find_latest_scene_file_submission_bundle(filename)
-    if latest_bundle:
-        prev_parameters, prev_references = get_settings_from_bundle(latest_bundle)
-
-        if prev_parameters:
-            if prev_parameters.get("Frames"):
-                frames = prev_parameters["Frames"]
-            if prev_parameters.get("OutputFilePath"):
-                output_file_path = prev_parameters["OutputFilePath"]
-            if prev_parameters.get("OutputFormat"):
-                output_format = prev_parameters["OutputFormat"]
-
-        if prev_references:
-            if prev_references.get("inputs", {}).get("filenames"):
-                input_filenames = list(
-                    set([*input_filenames, *prev_references["inputs"]["filenames"]])
-                )
-            if prev_references.get("inputs", {}).get("directories"):
-                input_directories = list(
-                    set([*input_directories, *prev_references["inputs"]["directories"]])
-                )
-            if prev_references.get("outputs", {}).get("directories"):
-                output_directories = list(
-                    set([*output_directories, *prev_references["outputs"]["directories"]])
-                )
-            if prev_references.get("referencedPaths"):
-                referenced_paths = list(
-                    set([*referenced_paths, *prev_references["referencedPaths"]])
-                )
+    sticky_settings = load_sticky_settings(scene_file)
+    if sticky_settings:
+        settings.apply_sticky_settings(sticky_settings)
 
     job_template = construct_job_template(filename)
-    asset_references = construct_asset_references(
-        input_filenames=input_filenames,
-        input_directories=input_directories,
-        output_directories=output_directories,
-        referenced_paths=referenced_paths,
-    )
-    parameter_values = construct_parameter_values(
-        scene_file=scene_file,
-        frames=frames,
-        output_file_path=output_file_path,
-        output_format=output_format,
-    )
+    asset_references = construct_asset_references(settings)
+    parameter_values = construct_parameter_values(settings)
 
     with tempfile.TemporaryDirectory() as temp_dir:
         dump_json_to_dir(job_template, temp_dir, "template.json")
         dump_json_to_dir(asset_references, temp_dir, "asset_references.json")
         dump_json_to_dir(parameter_values, temp_dir, "parameter_values.json")
 
-        gui_submit(temp_dir)
+        output = gui_submit(temp_dir)
+
+    if output:
+        settings.apply_submitter_settings(output)
+        save_sticky_settings(scene_file, settings)
 
 
 if __name__ == "__main__":

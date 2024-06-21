@@ -1,8 +1,4 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-import os
-import tempfile
-
-
 import mock_lux  # type: ignore[import-not-found] # noqa: F401
 
 deadline = __import__("deadline.keyshot_submitter.Submit to AWS Deadline Cloud")
@@ -18,96 +14,163 @@ def test_construct_job_template():
 
 
 def test_construct_asset_references():
-    input_filenames = ["test_filename_1", "test_filename_2"]
-    input_directories = ["test_directory_1", "test_directory_2"]
-    output_directories = ["test_directory_3", "test_directory_4"]
-    referenced_paths = ["reference_path_1", "reference_path_2"]
-
-    asset_references = submitter.construct_asset_references(
-        input_filenames=input_filenames,
-        input_directories=input_directories,
-        output_directories=output_directories,
-        referenced_paths=referenced_paths,
+    settings = submitter.Settings(
+        scene_file="test_scene_file",
+        frames="10-17",
+        input_filenames=["test_filename_1"],
+        auto_detected_input_filenames=["test_filename_2"],
+        input_directories=["test_directory_1", "test_directory_2"],
+        output_directories=["test_directory_3"],
+        auto_detected_output_directories=["test_directory_4"],
+        referenced_paths=["reference_path_1", "reference_path_2"],
+        output_file_path=r"test_scene_file.%d.png",
+        output_format="PNG",
     )
 
-    assert asset_references["assetReferences"]["inputs"]["filenames"] == input_filenames
-    assert asset_references["assetReferences"]["inputs"]["directories"] == input_directories
-    assert asset_references["assetReferences"]["outputs"]["directories"] == output_directories
-    assert asset_references["assetReferences"]["referencedPaths"] == referenced_paths
+    asset_references = submitter.construct_asset_references(settings)
+
+    assert asset_references["assetReferences"]["inputs"]["filenames"] == [
+        "test_filename_1",
+        "test_filename_2",
+    ]
+    assert (
+        asset_references["assetReferences"]["inputs"]["directories"] == settings.input_directories
+    )
+    assert asset_references["assetReferences"]["outputs"]["directories"] == [
+        "test_directory_3",
+        "test_directory_4",
+    ]
+    assert asset_references["assetReferences"]["referencedPaths"] == settings.referenced_paths
 
 
 def test_construct_parameter_values():
-    scene_file = "test_scene_file"
-    frames = "10-17"
-    output_file_path = r"test_scene_file.%d.png"
-    output_format = "PNG"
-
-    parameter_values = submitter.construct_parameter_values(
-        scene_file=scene_file,
-        frames=frames,
-        output_file_path=output_file_path,
-        output_format=output_format,
+    settings = submitter.Settings(
+        scene_file="test_scene_file",
+        frames="10-17",
+        input_filenames=[],
+        auto_detected_input_filenames=[],
+        input_directories=[],
+        output_directories=[],
+        auto_detected_output_directories=[],
+        referenced_paths=[],
+        output_file_path=r"test_scene_file.%d.png",
+        output_format="PNG",
     )
+
+    parameter_values = submitter.construct_parameter_values(settings)
 
     assert parameter_values == {
         "parameterValues": [
-            {"name": "KeyShotFile", "value": scene_file},
-            {"name": "OutputFilePath", "value": output_file_path},
-            {"name": "OutputFormat", "value": output_format},
-            {"name": "Frames", "value": frames},
+            {"name": "KeyShotFile", "value": settings.scene_file},
+            {"name": "OutputFilePath", "value": settings.output_file_path},
+            {"name": "OutputFormat", "value": settings.output_format},
+            {"name": "Frames", "value": settings.frames},
         ]
     }
 
 
-def test_get_settings_from_bundle_loads_bundle_settings_correctly():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        submitter.dump_json_to_dir(
-            submitter.construct_parameter_values(
-                scene_file="scene",
-                frames="10-17",
-                output_file_path=r"output.%d.png",
-                output_format="PNG",
-            ),
-            temp_dir,
-            "parameter_values.json",
-        )
-        submitter.dump_json_to_dir(
-            submitter.construct_asset_references(
-                input_filenames=["file1"],
-                input_directories=["dir1"],
-                output_directories=["dir2"],
-                referenced_paths=["refpath"],
-            ),
-            temp_dir,
-            "asset_references.json",
-        )
-        prev_parameters, prev_references = submitter.get_settings_from_bundle(temp_dir)
+def test_settings_serialize_correctly():
+    settings = submitter.Settings(
+        scene_file="test_scene_file",
+        frames="10-17",
+        input_filenames=["test_filename_1"],
+        auto_detected_input_filenames=["test_directory_3"],
+        input_directories=["test_directory_1"],
+        output_directories=["test_directory_2"],
+        auto_detected_output_directories=[],
+        referenced_paths=["test_ref_path"],
+        output_file_path=r"test_scene_file.%d.png",
+        output_format="PNG",
+    )
 
-    assert prev_parameters["Frames"] == "10-17"
-    assert prev_parameters["OutputFilePath"] == r"output.%d.png"
-    assert prev_parameters["OutputFormat"] == "PNG"
-    assert prev_references["inputs"]["filenames"] == ["file1"]
-    assert prev_references["inputs"]["directories"] == ["dir1"]
-    assert prev_references["outputs"]["directories"] == ["dir2"]
-    assert prev_references["referencedPaths"] == ["refpath"]
+    assert settings.to_dict() == {
+        "frames": "10-17",
+        "outputFilePath": r"test_scene_file.%d.png",
+        "outputFormat": "PNG",
+        "inputFilenames": ["test_filename_1"],
+        "inputDirectories": ["test_directory_1"],
+        "outputDirectories": ["test_directory_2"],
+        "referencedPaths": ["test_ref_path"],
+    }
 
 
-def test_get_settings_from_bundle_returns_none_for_missing_files():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        prev_parameters, prev_references = submitter.get_settings_from_bundle(temp_dir)
+def test_settings_apply_sticky_settings():
+    settings = submitter.Settings(
+        scene_file="test_scene_file",
+        frames="10-17",
+        input_filenames=["test_filename_1"],
+        auto_detected_input_filenames=["test_filename_2"],
+        input_directories=["test_directory_1"],
+        output_directories=["test_directory_2"],
+        auto_detected_output_directories=[],
+        referenced_paths=["test_ref_path"],
+        output_file_path=r"test_scene_file.%d.png",
+        output_format="PNG",
+    )
+    initial_settings = settings.to_dict()
 
-    assert prev_parameters is None
-    assert prev_references is None
+    settings.apply_sticky_settings({})
+    assert settings.to_dict() == initial_settings
+
+    settings.apply_sticky_settings(
+        {
+            "frames": "20-27",
+            "outputFilePath": "test_scene_file2",
+            "outputFormat": "JPEG",
+            "inputFilenames": ["test_filename_10"],
+            "inputDirectories": ["test_directory_11"],
+            "outputDirectories": ["test_directory_12"],
+            "referencedPaths": ["test_ref_path_2"],
+        }
+    )
+
+    assert settings.frames == "20-27"
+    assert settings.output_file_path == "test_scene_file2"
+    assert settings.output_format == "JPEG"
+    assert settings.input_filenames == ["test_filename_10"]
+    assert settings.input_directories == ["test_directory_11"]
+    assert settings.output_directories == ["test_directory_12"]
+    assert settings.referenced_paths == ["test_ref_path_2"]
 
 
-def test_get_settings_from_bundle_returns_none_for_invalid_json():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        with open(os.path.join(temp_dir, "parameter_values.json"), "w") as file:
-            file.write("not json")
-        with open(os.path.join(temp_dir, "asset_references.json"), "w") as file:
-            file.write("not json")
+def test_settings_apply_submitter_settings():
+    settings = submitter.Settings(
+        scene_file="test_scene_file",
+        frames="10-17",
+        input_filenames=["test_filename_1"],
+        auto_detected_input_filenames=["test_filename_2"],
+        input_directories=["test_directory_1"],
+        output_directories=["test_directory_2"],
+        auto_detected_output_directories=["test_directory_3"],
+        referenced_paths=["test_ref_path"],
+        output_file_path=r"test_scene_file.%d.png",
+        output_format="PNG",
+    )
 
-        prev_parameters, prev_references = submitter.get_settings_from_bundle(temp_dir)
+    settings.apply_submitter_settings(
+        {
+            "assetReferences": {
+                "inputs": {
+                    "filenames": ["test_filename_1", "test_filename_2", "test_filename_3"],
+                    "directories": ["test_directory_2"],
+                },
+                "outputs": {
+                    "directories": ["test_directory_2", "test_directory_3", "test_directory_4"]
+                },
+                "referencedPaths": ["test_ref_path_2"],
+            },
+            "parameterValues": [
+                {"name": "Frames", "value": "20-27"},
+                {"name": "OutputFilePath", "value": "test_scene_file2"},
+                {"name": "OutputFormat", "value": "JPEG"},
+            ],
+        }
+    )
 
-    assert prev_parameters is None
-    assert prev_references is None
+    assert settings.frames == "20-27"
+    assert settings.output_file_path == "test_scene_file2"
+    assert settings.output_format == "JPEG"
+    assert sorted(settings.input_filenames) == ["test_filename_1", "test_filename_3"]
+    assert sorted(settings.input_directories) == ["test_directory_2"]
+    assert sorted(settings.output_directories) == ["test_directory_2", "test_directory_4"]
+    assert sorted(settings.referenced_paths) == ["test_ref_path_2"]
