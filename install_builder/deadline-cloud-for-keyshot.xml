@@ -93,7 +93,6 @@
     <parameterList>
         <stringParameter name="deadline_cloud_for_keyshot_summary" ask="0" cliOptionShow="0">
             <value>Deadline Cloud for KeyShot
-- Install the integrated KeyShot submitter files to the installation directory
 - Register the plug-in with KeyShot by moving the Submit to AWS Deadline Cloud script to the KeyShot scripts folder
             </value>
         </stringParameter>

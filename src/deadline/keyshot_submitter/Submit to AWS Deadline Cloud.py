@@ -84,6 +84,10 @@ class Settings:
 
 
 def construct_job_template(filename: str) -> dict:
+    """
+    Constructs and returns a dict containing a valid job template for the KeyShot job.
+    The return value is safe to convert/dump to JSON or YAML.
+    """
     return {
         "specificationVersion": "jobtemplate-2023-09",
         "name": filename,
@@ -118,7 +122,7 @@ def construct_job_template(filename: str) -> dict:
                 "objectType": "FILE",
                 "dataFlow": "OUT",
                 "userInterface": {
-                    "control": "CHOOSE_INPUT_FILE",
+                    "control": "CHOOSE_OUTPUT_FILE",
                     "label": "Output File Path",
                     "groupLabel": "KeyShot Settings",
                 },
@@ -231,6 +235,9 @@ def construct_job_template(filename: str) -> dict:
 
 
 def construct_asset_references(settings: Settings) -> dict:
+    """
+    Constructs and returns the asset references in a dict that is safe to convert/dump to JSON or YAML.
+    """
     return {
         "assetReferences": {
             "inputs": {
@@ -257,6 +264,9 @@ def construct_asset_references(settings: Settings) -> dict:
 
 
 def construct_parameter_values(settings: Settings) -> dict:
+    """
+    Constructs and returns the parameter values in a dict that is safe to convert/dump to JSON or YAML.
+    """
     return {
         "parameterValues": [
             {"name": "KeyShotFile", "value": settings.scene_file},
