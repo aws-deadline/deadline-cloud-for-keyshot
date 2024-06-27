@@ -1,8 +1,10 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 from __future__ import annotations
-import lux
-import sys
+
 import os
+import sys
+
+import lux
 
 print("KeyShot Python Version: %s" % sys.version)
 
@@ -23,11 +25,11 @@ if "openjd" not in sys.modules.keys():
 from types import FrameType  # noqa: E402
 from typing import Optional  # noqa: E402
 
-from openjd.adaptor_runtime_client import ClientInterface  # noqa: E402
 from deadline.keyshot_adaptor.KeyShotClient.keyshot_handler import KeyShotHandler  # noqa: E402
+from openjd.adaptor_runtime_client import ClientInterface  # noqa: E402
 
 try:
-    import lux  # type: ignore  # noqa: F401
+    import lux  # type: ignore
 except ImportError:  # pragma: no cover
     raise OSError("Could not find the KeyShot module. Are you running this inside of KeyShot?")
 
