@@ -5,12 +5,11 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
-
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
 
-from _project import get_project_dict, get_dependencies, get_pip_platform, Dependency
+from _project import Dependency, get_dependencies, get_pip_platform, get_project_dict
 
 SUPPORTED_PYTHON_VERSIONS = ["3.9", "3.10", "3.11"]
 SUPPORTED_PLATFORMS = ["Windows", "Linux", "Darwin"]
