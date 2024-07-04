@@ -10,13 +10,13 @@ import time
 from functools import wraps
 from typing import Callable
 
-from deadline.client.api import get_deadline_cloud_library_telemetry_client, TelemetryClient
+from deadline.client.api import TelemetryClient, get_deadline_cloud_library_telemetry_client
 from openjd.adaptor_runtime._version import version as openjd_adaptor_version
 from openjd.adaptor_runtime.adaptors import Adaptor, AdaptorDataValidators, SemanticVersion
 from openjd.adaptor_runtime.adaptors.configuration import AdaptorConfiguration
-from openjd.adaptor_runtime.process import LoggingSubprocess
 from openjd.adaptor_runtime.app_handlers import RegexCallback, RegexHandler
 from openjd.adaptor_runtime.application_ipc import ActionsQueue, AdaptorServer
+from openjd.adaptor_runtime.process import LoggingSubprocess
 from openjd.adaptor_runtime_client import Action
 
 from .._version import version as adaptor_version
@@ -26,8 +26,6 @@ _logger = logging.getLogger(__name__)
 
 class KeyShotNotRunningError(Exception):
     """Error that is raised when attempting to use KeyShot while it is not running"""
-
-    pass
 
 
 _FIRST_KEYSHOT_ACTIONS = ["scene_file", "output_file_path", "output_format"]
@@ -420,7 +418,6 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
     def on_stop(self) -> None:
         """ """
         self._action_queue.enqueue_action(Action("close"), front=True)
-        return
 
     def on_cleanup(self):
         """

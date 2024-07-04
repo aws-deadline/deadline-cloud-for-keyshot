@@ -25,17 +25,11 @@ This package provides a KeyShot plugin script that creates jobs for AWS Deadline
 
 ### Using the KeyShot Submitter
 
-1. Install deadline and Pyside6
-    - e.g. `pip install deadline[gui]`
-2. Copy or link the file `deadline-cloud-for-keyshot/keyshot_script/Submit to AWS Deadline Cloud.py` to the KeyShot scripts folder.
-    - e.g. On Windows `C:/Users/<USER>/Documents/KeyShot/Scripts`
-3. Set the following environment variables
-    - Set the environment variable `DEADLINE_PYTHON` as the path to the Python installation where deadline-cloud and PySide2 were installed in step 1.
-      - e.g. On Windows if using Python 3.10 it might be `set DEADLINE_PYTHON=C:/Users/<USER>/AppData/Local/Programs/Python/Python310/python`
-    - Set the environment variable `DEADLINE_KEYSHOT` as the path to the `<PATH TO>/deadline-cloud-for-keyshot/src/deadline/keyshot_submitter` folder
-      - e.g. On Windows if the source was on the user's desktop it might be  `set DEADLINE_KEYSHOT=C:/Users/<USER>/Desktop/deadline-cloud-for-keyshot/src/deadline/keyshot_submitter`
-4. Launch KeyShot with the environment variables from step 3. set.
-5. The submitter can be launched within KeyShot from `Window > Scripting Console > Scripts > Submit to AWS Deadline Cloud > Run`
+1. `pip install deadline[gui]`
+2. Copy or link the file `deadline-cloud-for-keyshot/keyshot_submitter/Submit to AWS Deadline Cloud.py` to the KeyShot scripts folder.
+    - e.g. Local install: `%USERPROFILE%/Documents/KeyShot/Scripts`
+    - e.g. System install `%PROGRAMFILES%/KeyShot/Scripts`
+3. Launch KeyShot. The submitter can be launched within KeyShot from `Window > Scripting Console > Scripts > Submit to AWS Deadline Cloud > Run`
 
 ## Adaptor
 
