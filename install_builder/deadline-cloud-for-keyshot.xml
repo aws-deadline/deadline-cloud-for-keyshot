@@ -13,32 +13,10 @@
             <platforms>all</platforms>
             <distributionFileList>
                 <distributionFile>
-                    <origin>components/deadline-cloud-for-keyshot/keyshot_script/Submit to AWS Deadline Cloud.py</origin>
+                    <origin>components/deadline-cloud-for-keyshot/src/deadline/keyshot_submitter/Submit to AWS Deadline Cloud.py</origin>
                 </distributionFile>
             </distributionFileList>
         </folder>
-        <folder>
-            <description>KeyShot Submitter Files</description>
-            <destination>${keyshot_installdir}/keyshot_submitter</destination>
-            <name>keyshot</name>
-            <platforms>all</platforms>
-            <distributionFileList>
-                <distributionDirectory allowWildcards="1">
-                    <origin>components/deadline-cloud-for-keyshot/src/deadline/keyshot_submitter/*</origin>
-                </distributionDirectory>
-            </distributionFileList>
-        </folder>
-        <folder>
-             <description>Dependency Files</description>
-             <destination>${installdir}/tmp/keyshot_deps</destination>
-             <name>keyshotdeps</name>
-             <platforms>all</platforms>
-             <distributionFileList>
-                 <distributionDirectory allowWildcards="1">
-                     <origin>components/deadline-cloud-for-keyshot/dependency_bundle</origin>
-                 </distributionDirectory>
-             </distributionFileList>
-         </folder>
     </folderList>
     <initializationActionList>
         <if>
@@ -115,9 +93,7 @@
     <parameterList>
         <stringParameter name="deadline_cloud_for_keyshot_summary" ask="0" cliOptionShow="0">
             <value>Deadline Cloud for KeyShot
-- Install the integrated KeyShot submitter files to the installation directory
 - Register the plug-in with KeyShot by moving the Submit to AWS Deadline Cloud script to the KeyShot scripts folder
-- Sets the DEADLINE_KEYSHOT environment variable to point the Submit to AWS Deadline Cloud script to the submitter module
             </value>
         </stringParameter>
         <directoryParameter>
@@ -133,20 +109,6 @@
             <mustExist>1</mustExist>
         </directoryParameter>
     </parameterList>
-    <postInstallationActionList>
-        <unzip>
-            <destinationDirectory>${keyshot_installdir}</destinationDirectory>
-            <zipFile>${installdir}/tmp/keyshot_deps/dependency_bundle/deadline_cloud_for_keyshot_submitter-deps-${keyshot_deps_platform}.zip</zipFile>
-        </unzip>
-        <deleteFile>
-            <path>${installdir}/tmp/keyshot_deps</path>
-        </deleteFile>
-        <fnAddEnvironmentVariable>
-            <name>DEADLINE_KEYSHOT</name>
-            <value>${keyshot_installdir}/keyshot_submitter</value>
-            <scope>${installscope}</scope>
-        </fnAddEnvironmentVariable>
-    </postInstallationActionList>
     <shouldPackRuleList>
         <compareText>
                <logic>does_not_contain</logic>
