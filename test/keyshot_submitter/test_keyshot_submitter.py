@@ -249,6 +249,17 @@ def test_settings_apply_submitter_settings():
 def test_unsaved_changes_prompt():
     local_mock_lux = Mock()
     local_mock_lux.isSceneChanged.return_value = True
+
+    local_mock_lux.getInputDialog.return_value = None  # emulate clicking Cancel
     with pytest.raises(Exception):
         submitter.main(local_mock_lux)
-        local_mock_lux.getMessageBox.assert_called()
+    local_mock_lux.saveFile.assert_not_called()
+
+    local_mock_lux.getInputDialog.return_value = {}  # emulate clicking Ok
+    # Raise an exception so the main() handler exits after the file save operation is called.
+    # We want to verify that the saveFile call is made, but don't want to run the rest of the
+    # submitter.
+    local_mock_lux.saveFile.side_effect = Exception()
+    with pytest.raises(Exception):
+        submitter.main(local_mock_lux)
+    local_mock_lux.saveFile.assert_called()

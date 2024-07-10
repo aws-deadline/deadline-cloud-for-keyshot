@@ -359,11 +359,16 @@ def gui_submit(bundle_directory: str) -> Optional[dict[str, Any]]:
 
 def main(lux):
     if lux.isSceneChanged():
-        lux.getMessageBox(
-            title="Unsaved changes", msg="You have unsaved changes. Save your scene and try again."
+        result = lux.getInputDialog(
+            title="Unsaved changes",
+            values=[(lux.DIALOG_LABEL, "You have unsaved changes. Do you want to save your file?")],
         )
-        # Raise an exception so Keyshot shows the script's result status as "Failed" instead of "Success"
-        raise Exception("Save changes first")
+        # result is {} if the user clicks Ok and None if the user clicks cancel
+        if result is None:
+            # Raise an exception so Keyshot shows the script's result status as "Failure" instead of "Success"
+            raise Exception("Changes must be saved before submitting.")
+        else:
+            lux.saveFile()
 
     scene_file = lux.getSceneInfo()["file"]
     external_files = lux.getExternalFiles()
