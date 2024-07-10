@@ -1,9 +1,11 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+from unittest.mock import Mock
 import mock_lux  # type: ignore[import-not-found] # noqa: F401
 
 import json
 import os
 import tempfile
+import pytest
 
 
 deadline = __import__("deadline.keyshot_submitter.Submit to AWS Deadline Cloud")
@@ -242,3 +244,22 @@ def test_settings_apply_submitter_settings():
     assert sorted(settings.input_directories) == ["test_directory_2"]
     assert sorted(settings.output_directories) == ["test_directory_2", "test_directory_4"]
     assert sorted(settings.referenced_paths) == ["test_ref_path_2"]
+
+
+def test_unsaved_changes_prompt():
+    local_mock_lux = Mock()
+    local_mock_lux.isSceneChanged.return_value = True
+
+    local_mock_lux.getInputDialog.return_value = None  # emulate clicking Cancel
+    with pytest.raises(Exception):
+        submitter.main(local_mock_lux)
+    local_mock_lux.saveFile.assert_not_called()
+
+    local_mock_lux.getInputDialog.return_value = {}  # emulate clicking Ok
+    # Raise an exception so the main() handler exits after the file save operation is called.
+    # We want to verify that the saveFile call is made, but don't want to run the rest of the
+    # submitter.
+    local_mock_lux.saveFile.side_effect = Exception()
+    with pytest.raises(Exception):
+        submitter.main(local_mock_lux)
+    local_mock_lux.saveFile.assert_called()
