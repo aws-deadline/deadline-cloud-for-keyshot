@@ -420,6 +420,10 @@ def main(lux):
         output = gui_submit(temp_dir)
 
     if output:
+        if output.get("status") == "CANCELED":
+            # Raise an exception so Keyshot does not show the script's result status as "Success"
+            raise Exception("Submission was cancelled.")
+
         settings.apply_submitter_settings(output)
         save_sticky_settings(scene_file, settings)
 
