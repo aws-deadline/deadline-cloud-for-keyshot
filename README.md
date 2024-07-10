@@ -23,12 +23,15 @@ This library requires:
 
 This package provides a KeyShot plugin script that creates jobs for AWS Deadline Cloud using the [AWS Deadline Cloud client library][deadline-cloud-client]. Based on the loaded scene it determines the files required, allows the user to specify render options with KeyShot's render interface, and builds an [OpenJD template][openjd] that defines the workflow.
 
-### Using the KeyShot Submitter
+### Installing and using the KeyShot Submitter
 
-1. `pip install deadline[gui]`
-2. Copy or link the file `deadline-cloud-for-keyshot/keyshot_submitter/Submit to AWS Deadline Cloud.py` to the KeyShot scripts folder.
-    - e.g. Local install: `%USERPROFILE%/Documents/KeyShot/Scripts`
-    - e.g. System install `%PROGRAMFILES%/KeyShot/Scripts`
+1. Run `pip install deadline[gui]`
+2. Copy the file `deadline-cloud-for-keyshot/keyshot_submitter/Submit to AWS Deadline Cloud.py` to the KeyShot scripts folder for your OS:
+    - Windows (choose one): 
+        - User scripts folder: `%USERPROFILE%/Documents/KeyShot/Scripts`
+        - System-wide scripts folder: `%PROGRAMFILES%/KeyShot/Scripts`
+    - Mac: `/Library/Application Support/KeyShot12/` or `/Library/Application Support/KeyShot/` depending on your version of Keyshot.
+        - You can navigate to the folder by going to Finder, clicking the menu for Go -> Go to Folder, and typing in the folder path.
 3. Launch KeyShot. The submitter can be launched within KeyShot from `Window > Scripting Console > Scripts > Submit to AWS Deadline Cloud > Run`
 
 ## Adaptor
