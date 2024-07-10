@@ -30,8 +30,8 @@ This package provides a KeyShot plugin script that creates jobs for AWS Deadline
     - Window (choose one): 
         - User scripts folder: `%USERPROFILE%/Documents/KeyShot/Scripts`
         - System-wide scripts folder: `%PROGRAMFILES%/KeyShot/Scripts`
-    - Mac: `/Library/Application Support/KeyShot12/`
-        - You can navigate to this folder by going to Finder, clicking the menu for Go -> Go to Folder, and typing in `/Library/Application Support/KeyShot12/`.
+    - Mac: `/Library/Application Support/KeyShot12/` or `/Library/Application Support/KeyShot/` depending on your version of Keyshot.
+        - You can navigate to the folder by going to Finder, clicking the menu for Go -> Go to Folder, and typing in the folder path.
 3. Launch KeyShot. The submitter can be launched within KeyShot from `Window > Scripting Console > Scripts > Submit to AWS Deadline Cloud > Run`
 
 ## Adaptor
