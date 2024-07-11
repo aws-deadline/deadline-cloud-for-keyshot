@@ -1,12 +1,12 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-from unittest.mock import Mock
 import mock_lux  # type: ignore[import-not-found] # noqa: F401
 
 import json
 import os
 import tempfile
 import pytest
-
+import shutil
+from unittest import mock
 
 deadline = __import__("deadline.keyshot_submitter.Submit to AWS Deadline Cloud")
 submitter = getattr(deadline.keyshot_submitter, "Submit to AWS Deadline Cloud")
@@ -32,7 +32,6 @@ def test_construct_asset_references():
         auto_detected_input_filenames=["test_filename_2"],
         input_directories=["test_directory_1", "test_directory_2"],
         output_directories=["test_directory_3"],
-        auto_detected_output_directories=["test_directory_4"],
         referenced_paths=["reference_path_1", "reference_path_2"],
     )
 
@@ -45,10 +44,9 @@ def test_construct_asset_references():
     assert (
         asset_references["assetReferences"]["inputs"]["directories"] == settings.input_directories
     )
-    assert asset_references["assetReferences"]["outputs"]["directories"] == [
-        "test_directory_3",
-        "test_directory_4",
-    ]
+    assert (
+        asset_references["assetReferences"]["outputs"]["directories"] == settings.output_directories
+    )
     assert asset_references["assetReferences"]["referencedPaths"] == settings.referenced_paths
 
 
@@ -64,7 +62,6 @@ def test_construct_parameter_values():
         auto_detected_input_filenames=[],
         input_directories=[],
         output_directories=[],
-        auto_detected_output_directories=[],
         referenced_paths=[],
     )
 
@@ -92,7 +89,6 @@ def test_settings_serialize_correctly():
         auto_detected_input_filenames=["test_directory_3"],
         input_directories=["test_directory_1"],
         output_directories=["test_directory_2"],
-        auto_detected_output_directories=[],
         referenced_paths=["test_ref_path"],
     )
 
@@ -121,7 +117,6 @@ def test_settings_apply_sticky_settings():
         auto_detected_input_filenames=["test_filename_2"],
         input_directories=["test_directory_1"],
         output_directories=["test_directory_2"],
-        auto_detected_output_directories=[],
         referenced_paths=["test_ref_path"],
     )
     initial_settings = settings.output_sticky_settings()
@@ -191,7 +186,6 @@ def test_settings_apply_submitter_settings():
         auto_detected_input_filenames=["test_filename_2"],
         input_directories=["test_directory_1"],
         output_directories=["test_directory_2"],
-        auto_detected_output_directories=["test_directory_3"],
         referenced_paths=["test_ref_path"],
     )
 
@@ -224,7 +218,6 @@ def test_settings_apply_submitter_settings():
                             "directories": [
                                 "test_directory_2",
                                 "test_directory_3",
-                                "test_directory_4",
                             ]
                         },
                         "referencedPaths": ["test_ref_path_2"],
@@ -242,12 +235,12 @@ def test_settings_apply_submitter_settings():
     ]
     assert sorted(settings.input_filenames) == ["test_filename_1", "test_filename_3"]
     assert sorted(settings.input_directories) == ["test_directory_2"]
-    assert sorted(settings.output_directories) == ["test_directory_2", "test_directory_4"]
+    assert sorted(settings.output_directories) == ["test_directory_2", "test_directory_3"]
     assert sorted(settings.referenced_paths) == ["test_ref_path_2"]
 
 
 def test_unsaved_changes_prompt():
-    local_mock_lux = Mock()
+    local_mock_lux = mock.Mock()
     local_mock_lux.isSceneChanged.return_value = True
 
     local_mock_lux.getInputDialog.return_value = None  # emulate clicking Cancel
@@ -263,3 +256,45 @@ def test_unsaved_changes_prompt():
     with pytest.raises(Exception):
         submitter.main(local_mock_lux)
     local_mock_lux.saveFile.assert_called()
+
+
+def test_save_ksp_bundle():
+    dir = os.path.normpath("/testdir/test")
+    bundle_name = "test_bundle.ksp"
+    expected_bundle_path = os.path.normpath(f"{dir}/{bundle_name}")
+
+    output = submitter.save_ksp_bundle(dir, bundle_name)
+
+    assert output == expected_bundle_path
+    mock_lux.lux_module.savePackage.assert_called_once_with(path=expected_bundle_path)
+
+
+def test_get_ksp_bundle_files():
+
+    TEST_SCENE_FILE = "test_scene_file.bip"
+    TEST_ASSET_FILE = "test_asset.png"
+    TEST_KSP_BUNDLE_NAME = "test_ksp_bundle"
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        to_zip_dir = os.path.join(temp_dir, "to_zip")
+        os.mkdir(to_zip_dir)
+        with open(os.path.join(to_zip_dir, TEST_SCENE_FILE), "w") as file:
+            file.write("test scene")
+        with open(os.path.join(to_zip_dir, TEST_ASSET_FILE), "w") as file:
+            file.write("test asset")
+
+        # Creating a zip archive as that's what is used to unpack a ksp and a ksp
+        # can't be created easily outside of KeyShot
+        shutil.make_archive(os.path.join(temp_dir, TEST_KSP_BUNDLE_NAME), "zip", to_zip_dir)
+
+        with mock.patch.object(
+            submitter,
+            "save_ksp_bundle",
+            return_value=os.path.join(temp_dir, f"{TEST_KSP_BUNDLE_NAME}.zip"),
+        ) as mock_save_ksp_bundle:
+            scene_file, input_filenames = submitter.get_ksp_bundle_files(temp_dir)
+
+        assert scene_file == os.path.join(temp_dir, "unpack", TEST_SCENE_FILE)
+        assert len(input_filenames) == 1
+        assert input_filenames[0] == os.path.join(temp_dir, "unpack", TEST_ASSET_FILE)
+        mock_save_ksp_bundle.assert_called_once_with(os.path.join(temp_dir, "ksp"), mock.ANY)
