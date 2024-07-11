@@ -7,15 +7,20 @@ import json
 import os
 import platform
 import shlex
+import shutil
 import subprocess
 import tempfile
+import glob
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 import lux
 
 RENDER_SUBMITTER_SETTINGS_FILE_EXT = ".deadline_render_settings.json"
+SUBMISSION_MODE_KEY = "submission_mode"
+# Unique ID required to allow KeyShot to save selections for a dialog
+DEADLINE_CLOUD_DIALOG_ID = "e309ce79-3ee8-446a-8308-10d16dfcbb42"
 
 
 @dataclass
@@ -26,7 +31,6 @@ class Settings:
     output_directories: list[str]
     referenced_paths: list[str]
     auto_detected_input_filenames: list[str]
-    auto_detected_output_directories: list[str]
 
     def output_sticky_settings(self):
         return {
@@ -88,11 +92,7 @@ class Settings:
         if asset_references.get("inputs", {}).get("directories"):
             self.input_directories = asset_references["inputs"]["directories"]
         if asset_references.get("outputs", {}).get("directories"):
-            # Persist output directories that were not autodetected (i.e. were manually added)
-            self.output_directories = list(
-                set(asset_references["outputs"]["directories"])
-                - set(self.auto_detected_output_directories)
-            )
+            self.output_directories = asset_references["outputs"]["directories"]
         if asset_references.get("referencedPaths"):
             self.referenced_paths = asset_references["referencedPaths"]
 
@@ -259,18 +259,7 @@ def construct_asset_references(settings: Settings) -> dict:
                     list(set([*settings.input_filenames, *settings.auto_detected_input_filenames]))
                 ),
             },
-            "outputs": {
-                "directories": sorted(
-                    list(
-                        set(
-                            [
-                                *settings.output_directories,
-                                *settings.auto_detected_output_directories,
-                            ]
-                        )
-                    )
-                ),
-            },
+            "outputs": {"directories": sorted(settings.output_directories)},
             "referencedPaths": sorted(settings.referenced_paths),
         }
     }
@@ -346,6 +335,7 @@ def gui_submit(bundle_directory: str) -> Optional[dict[str, Any]]:
                 check=True,
                 capture_output=True,
                 text=True,
+                creationflags=subprocess.CREATE_NO_WINDOW,  # type: ignore[attr-defined]
             )
             output = result.stdout
     except subprocess.CalledProcessError as e:
@@ -357,7 +347,83 @@ def gui_submit(bundle_directory: str) -> Optional[dict[str, Any]]:
         return None
 
 
+def options_dialog() -> dict[str, Any]:
+    """
+    Builds and displays a dialog within KeyShot to get the submission options
+    reuired before the main gui submission window is opened outside of KeyShot.
+    Options:
+        Option 1: Dropdown to select whether to submit just the scene file itself
+                  or all external file references as well by packing/unpacking a
+                  KSP bundle before submission.
+    Returns a dictionary of the selected option values in the format:
+        {'SUBMISSION_MODE_KEY': [1, 'only the scene BIP file']}
+    """
+    dialog_items = [
+        (
+            SUBMISSION_MODE_KEY,
+            lux.DIALOG_ITEM,
+            "What files would you like to attach to the job?",
+            0,
+            ["The scene BIP file and all external files references", "Only the scene BIP file"],
+        )
+    ]
+    selections = lux.getInputDialog(
+        title="AWS Deadline Cloud Submission Options",
+        values=dialog_items,
+        id=DEADLINE_CLOUD_DIALOG_ID,
+    )
+
+    return selections
+
+
+def save_ksp_bundle(directory: str, bundle_name: str) -> str:
+    """
+    Saves out the current scene and any file references to a ksp bundle in a
+    directory.
+    Returns the file path where the bundle was saved to.
+    """
+    full_ksp_path = os.path.join(directory, bundle_name)
+
+    if not lux.savePackage(path=full_ksp_path):
+        raise RuntimeError("KSP was not able to be saved!")
+
+    return full_ksp_path
+
+
+def get_ksp_bundle_files(directory: str) -> Tuple[str, list[str]]:
+    """
+    Creates a ksp bundle from the current scene containing the scene file and
+    any external file references. The bundle is unpacked into a directory passed
+    in.
+    Returns the scene file and a list of the external files from the directory
+    where the ksp was extracted to.
+    """
+
+    ksp_dir = os.path.join(directory, "ksp")
+    unpack_dir = os.path.join(directory, "unpack")
+
+    ksp_archive = save_ksp_bundle(ksp_dir, "temp_deadline_cloud.ksp")
+    shutil.unpack_archive(ksp_archive, unpack_dir, "zip")
+    input_filenames = [
+        os.path.join(unpack_dir, file)
+        for file in os.listdir(unpack_dir)
+        if not file.endswith(".bip")
+    ]
+
+    bip_files = glob.glob(os.path.join(unpack_dir, "*.bip"))
+
+    if not bip_files:
+        raise RuntimeError("No .bip files found in the KSP bundle.")
+    elif len(bip_files) > 1:
+        raise RuntimeError("Multiple .bip files found in the KSP bundle.")
+
+    bip_file = bip_files[0]
+
+    return bip_file, input_filenames
+
+
 def main(lux):
+
     if lux.isSceneChanged():
         result = lux.getInputDialog(
             title="Unsaved changes",
@@ -370,24 +436,27 @@ def main(lux):
         else:
             lux.saveFile()
 
-    scene_file = lux.getSceneInfo()["file"]
-    external_files = lux.getExternalFiles()
+    dialog_selections = options_dialog()
+
+    if not dialog_selections:
+        print("Job submission canceled.")
+        return
+
+    scene_info = lux.getSceneInfo()
+    scene_file = scene_info["file"]
+    scene_name, _ = os.path.splitext(scene_info["name"])
     current_frame = lux.getAnimationFrame()
     frame_count = lux.getAnimationInfo().get("frames")
 
     settings = Settings(
         parameter_values=[
             {
-                "name": "KeyShotFile",
-                "value": scene_file,
-            },
-            {
                 "name": "Frames",
                 "value": f"1-{frame_count}" if frame_count else f"{current_frame}",
             },
             {
                 "name": "OutputFilePath",
-                "value": f"{scene_file}.%d.png",
+                "value": os.path.join(os.path.dirname(scene_file), f"{scene_name}.%d.png"),
             },
             {
                 "name": "OutputFormat",
@@ -395,29 +464,34 @@ def main(lux):
             },
         ],
         input_filenames=[],
-        auto_detected_input_filenames=[*external_files, scene_file],
+        auto_detected_input_filenames=[],
         input_directories=[],
         output_directories=[],
-        auto_detected_output_directories=[str(os.path.dirname(scene_file))],
         referenced_paths=[],
     )
-
-    _, filename = os.path.split(scene_file)
 
     sticky_settings = load_sticky_settings(scene_file)
     if sticky_settings:
         settings.apply_sticky_settings(sticky_settings)
 
-    job_template = construct_job_template(filename)
-    asset_references = construct_asset_references(settings)
-    parameter_values = construct_parameter_values(settings)
+    with tempfile.TemporaryDirectory() as bundle_temp_dir:
+        # {'submission_mode': [0, 'the scene BIP file and all external files references']}
+        if not dialog_selections[SUBMISSION_MODE_KEY][0]:
+            temp_scene_file, input_filenames = get_ksp_bundle_files(bundle_temp_dir)
+            settings.auto_detected_input_filenames = input_filenames
+            settings.parameter_values.append({"name": "KeyShotFile", "value": temp_scene_file})
+        else:
+            settings.parameter_values.append({"name": "KeyShotFile", "value": scene_file})
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        dump_json_to_dir(job_template, temp_dir, "template.json")
-        dump_json_to_dir(asset_references, temp_dir, "asset_references.json")
-        dump_json_to_dir(parameter_values, temp_dir, "parameter_values.json")
+        job_template = construct_job_template(scene_name)
+        asset_references = construct_asset_references(settings)
+        parameter_values = construct_parameter_values(settings)
 
-        output = gui_submit(temp_dir)
+        dump_json_to_dir(job_template, bundle_temp_dir, "template.json")
+        dump_json_to_dir(asset_references, bundle_temp_dir, "asset_references.json")
+        dump_json_to_dir(parameter_values, bundle_temp_dir, "parameter_values.json")
+
+        output = gui_submit(bundle_temp_dir)
 
     if output:
         if output.get("status") == "CANCELED":
