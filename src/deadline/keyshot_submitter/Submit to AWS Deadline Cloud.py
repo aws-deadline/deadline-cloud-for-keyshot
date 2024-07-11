@@ -439,8 +439,8 @@ def main(lux):
     dialog_selections = options_dialog()
 
     if not dialog_selections:
-        # Dialog was cancelled. Raise an exception so Keyshot does not show the script's result status as "Success"
-        raise Exception("Job submission canceled.")
+        # Dialog was canceled. Raise an exception so Keyshot does not show the script's result status as "Success"
+        raise Exception("Submission was canceled.")
 
     scene_info = lux.getSceneInfo()
     scene_file = scene_info["file"]
@@ -496,7 +496,7 @@ def main(lux):
     if output:
         if output.get("status") == "CANCELED":
             # Raise an exception so Keyshot does not show the script's result status as "Success"
-            raise Exception("Submission was cancelled.")
+            raise Exception("Submission was canceled.")
 
         settings.apply_submitter_settings(output)
         save_sticky_settings(scene_file, settings)
