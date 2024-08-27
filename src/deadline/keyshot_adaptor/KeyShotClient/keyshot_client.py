@@ -21,6 +21,8 @@ if "openjd" not in sys.modules.keys():
                 print("add_dll_directory failed: %s" % p)
         sys.path.append(p)
 
+# Required for making pywin32 portable
+import pywin32_bootstrap  # type: ignore # noqa: F401 E402
 
 from types import FrameType  # noqa: E402
 from typing import Optional  # noqa: E402

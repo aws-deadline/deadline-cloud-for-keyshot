@@ -53,21 +53,18 @@ trap cleanup_workdir EXIT
 PREFIX=$WORKDIR/prefix
 
 if [ "$CONDA_PLATFORM" = "win-64" ]; then
-    BINDIR=$PREFIX/Library/bin
     PACKAGEDIR=$PREFIX/Library/opt/$ADAPTOR_NAME
 else
-    BINDIR=$PREFIX/bin
     PACKAGEDIR=$PREFIX/opt/$ADAPTOR_NAME
 fi
 
 
 mkdir -p $PREFIX
 mkdir -p $PACKAGEDIR
-mkdir -p $BINDIR
 
 # Install the adaptor into the virtual env
 if [ $SOURCE = 1 ]; then
-    # In source mode, openjd-adaptor-runtime-for-python must be alongside this adaptor source
+    # In source mode, openjd-adaptor-runtime-for-python and deadline-cloud must be alongside this adaptor source
     RUNTIME_INSTALLABLE=$SCRIPTDIR/../../openjd-adaptor-runtime-for-python
     CLIENT_INSTALLABLE=$SCRIPTDIR/../../deadline-cloud
     ADAPTOR_INSTALLABLE=$SCRIPTDIR/..
@@ -135,41 +132,6 @@ rm -r $PACKAGEDIR/deadline/*_submitter
 # Remove the bin dir if there is one
 if [ -d $PACKAGEDIR/bin ]; then
     rm -r $PACKAGEDIR/bin
-fi
-
-PYSCRIPT="
-import sys
-from deadline.${APP_LOWERCASE}_adaptor.${APP_PASCAL_CASE}Adaptor.__main__ import main
-sys.exit(main())
-"
-
-cat <<EOF > $BINDIR/$APP_LOWERCASE-openjd
-#!/usr/bin/env python3.11
-$PYSCRIPT
-EOF
-
-# Temporary
-cp $BINDIR/$APP_LOWERCASE-openjd $BINDIR/${APP_PASCAL_CASE}Adaptor
-
-chmod u+x $BINDIR/$APP_LOWERCASE-openjd $BINDIR/${APP_PASCAL_CASE}Adaptor
-
-if [ $CONDA_PLATFORM = "win-64" ]; then
-    # Install setuptools to get cli-64.exe
-    mkdir -p $WORKDIR/tmp
-    pip install \
-        --target $WORKDIR/tmp \
-        --platform $PYPI_PLATFORM \
-        --python-version $PYTHON_VERSION \
-        --ignore-installed \
-        --no-deps \
-        setuptools
-
-    # Use setuptools' cli-64.exe to define the entry point
-    cat <<EOF > $BINDIR/$APP_LOWERCASE-openjd-script.py
-#!C:\\Path\\To\\Python.exe
-$PYSCRIPT
-EOF
-    cp $WORKDIR/tmp/setuptools/cli-64.exe $BINDIR/$APP_LOWERCASE-openjd.exe
 fi
 
 # Everything between the first "-" and the next "+" is the package version number
