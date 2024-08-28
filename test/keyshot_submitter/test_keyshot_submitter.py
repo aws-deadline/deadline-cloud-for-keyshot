@@ -152,8 +152,10 @@ def test_settings_apply_sticky_settings():
     settings.apply_sticky_settings(
         {
             "parameterValues": [
-                # input KeyShotFile from sticky settings should be ignored
+                # Some parameters should not be sticky
                 {"name": "KeyShotFile", "value": "scene_file_from_sticky_settings"},
+                {"name": "CondaPackages", "value": "keyshot=2023.* keyshot-openjd=0.0.1"},
+                {"name": "CondaChannels", "value": "conda-forge"},
             ],
             "inputFilenames": ["test_filename_20"],
             "inputDirectories": ["test_directory_21"],
