@@ -6,13 +6,10 @@
 import json
 import os
 import platform
-import shlex
-import shutil
 import subprocess
 import tempfile
 import glob
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, Optional, Tuple
 
 import lux
@@ -281,9 +278,14 @@ def dump_json_to_dir(contents: dict, directory: str, filename: str) -> None:
         file.write(json.dumps(contents))
 
 
+def substitute_suffix(path: str, suffix: str) -> str:
+    root, _ext = os.path.splitext(path)
+    return root + suffix
+
+
 def load_sticky_settings(scene_filename: str) -> Optional[dict]:
-    sticky_settings_filename = Path(scene_filename).with_suffix(RENDER_SUBMITTER_SETTINGS_FILE_EXT)
-    if sticky_settings_filename.exists() and sticky_settings_filename.is_file():
+    sticky_settings_filename = substitute_suffix(scene_filename, RENDER_SUBMITTER_SETTINGS_FILE_EXT)
+    if os.path.exists(sticky_settings_filename) and os.path.isfile(sticky_settings_filename):
         try:
             with open(sticky_settings_filename, encoding="utf8") as f:
                 return json.load(f)
@@ -299,7 +301,7 @@ def load_sticky_settings(scene_filename: str) -> Optional[dict]:
 
 
 def save_sticky_settings(scene_file: str, settings: Settings):
-    sticky_settings_filename = Path(scene_file).with_suffix(RENDER_SUBMITTER_SETTINGS_FILE_EXT)
+    sticky_settings_filename = substitute_suffix(scene_file, RENDER_SUBMITTER_SETTINGS_FILE_EXT)
     with open(sticky_settings_filename, "w", encoding="utf8") as f:
         json.dump(settings.output_sticky_settings(), f, indent=2)
 
@@ -316,7 +318,7 @@ def gui_submit(bundle_directory: str) -> Optional[dict[str, Any]]:
                     shell_executable,
                     "-i",
                     "-c",
-                    f'echo "START_DEADLINE_OUTPUT";deadline bundle gui-submit {shlex.quote(bundle_directory)} --output json',
+                    f"echo \"START_DEADLINE_OUTPUT\";deadline bundle gui-submit '{bundle_directory}' --output json",
                 ],
                 check=True,
                 capture_output=True,
@@ -403,9 +405,30 @@ def get_ksp_bundle_files(directory: str) -> Tuple[str, list[str]]:
 
     ksp_dir = os.path.join(directory, "ksp")
     unpack_dir = os.path.join(directory, "unpack")
+    ksp_archive = save_ksp_bundle(ksp_dir, "temp_deadline_cloud.zip")
+    if platform.system() == "Darwin" or platform.system() == "Linux":
+        subprocess.run(
+            ["unzip", ksp_archive, "-d", unpack_dir],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    else:
+        subprocess.run(
+            [
+                "PowerShell",
+                "-Command",
+                "Expand-Archive",
+                "-Path",
+                ksp_archive,
+                "-DestinationPath",
+                unpack_dir,
+            ],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
 
-    ksp_archive = save_ksp_bundle(ksp_dir, "temp_deadline_cloud.ksp")
-    shutil.unpack_archive(ksp_archive, unpack_dir, "zip")
     input_filenames = [
         os.path.join(unpack_dir, file)
         for file in os.listdir(unpack_dir)
