@@ -418,6 +418,8 @@ def get_ksp_bundle_files(directory: str) -> Tuple[str, list[str]]:
             [
                 "PowerShell",
                 "-Command",
+                '$ProgressPreference = "SilentlyContinue"',  # don't display progress bar, up to 4x speedup
+                ";",
                 "Expand-Archive",
                 "-Path",
                 ksp_archive,
