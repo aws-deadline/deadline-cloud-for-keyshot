@@ -52,9 +52,11 @@ class Settings:
 
         for param in input_parameter_values:
             if param.get("name") and param.get("value"):
-                # don't re-use KeyShotFile param if the render settings are copied from one file to another
-                if param["name"] != "KeyShotFile":
-                    updated_parameter_values[param["name"]] = param["value"]
+                # Don't re-use KeyShotFile param if the render settings are copied from one file to another
+                # Don't preserve conda settings so the Keyshot version can be updated by updating the submitter
+                if param["name"] in ["KeyShotFile", "CondaPackages", "CondaChannels"]:
+                    continue
+                updated_parameter_values[param["name"]] = param["value"]
 
         self.parameter_values = [
             {"name": parameter_name, "value": updated_parameter_values[parameter_name]}
@@ -446,7 +448,6 @@ def get_ksp_bundle_files(directory: str) -> Tuple[str, list[str]]:
 
 
 def main(lux):
-
     if lux.isSceneChanged():
         result = lux.getInputDialog(
             title="Unsaved changes",
@@ -505,6 +506,13 @@ def main(lux):
             settings.parameter_values.append({"name": "KeyShotFile", "value": temp_scene_file})
         else:
             settings.parameter_values.append({"name": "KeyShotFile", "value": scene_file})
+
+        # Add default values for Conda
+        major_version, minor_version = lux.getKeyShotDisplayVersion()
+        settings.parameter_values.append(
+            {"name": "CondaPackages", "value": f"keyshot={major_version}.* keyshot-openjd=0.1.*"}
+        )
+        settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
 
         job_template = construct_job_template(scene_name)
         asset_references = construct_asset_references(settings)
