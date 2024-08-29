@@ -17,7 +17,7 @@ AWS Deadline Cloud for KeyShot is a python package that allows users to create [
 This library requires:
 1. KeyShot 2023 or 2024
 1. Python 3.9 or higher; and
-1. Windows, or a macOS operating system.
+1. Windows or macOS operating system.
 
 ## Submitter
 
