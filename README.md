@@ -26,10 +26,10 @@ This package provides a KeyShot plugin script that creates jobs for AWS Deadline
 ### Installing and using the KeyShot Submitter
 
 1. Run `pip install deadline[gui]`
-2. Copy the file `deadline-cloud-for-keyshot/keyshot_submitter/Submit to AWS Deadline Cloud.py` to the KeyShot scripts folder for your OS:
+2. Copy the file `deadline-cloud-for-keyshot/src/deadline/keyshot_submitter/Submit to AWS Deadline Cloud.py` to the KeyShot scripts folder for your OS:
     - Windows (choose one): 
-        - User scripts folder: `%USERPROFILE%/Documents/KeyShot/Scripts`
-        - System-wide scripts folder: `%PROGRAMFILES%/KeyShot/Scripts`
+        - User scripts folder e.g. `%USERPROFILE%/Documents/KeyShot/Scripts`
+        - System-wide scripts folder e.g. `%PROGRAMFILES%/KeyShot/Scripts`
     - Mac: `/Library/Application Support/KeyShot12/` or `/Library/Application Support/KeyShot/` depending on your version of Keyshot.
         - You can navigate to the folder by going to Finder, clicking the menu for Go -> Go to Folder, and typing in the folder path.
 3. Launch KeyShot. The submitter can be launched within KeyShot from `Window > Scripting Console > Scripts > Submit to AWS Deadline Cloud > Run`
