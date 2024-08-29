@@ -448,7 +448,6 @@ def get_ksp_bundle_files(directory: str) -> Tuple[str, list[str]]:
 
 
 def main(lux):
-
     if lux.isSceneChanged():
         result = lux.getInputDialog(
             title="Unsaved changes",
@@ -509,8 +508,9 @@ def main(lux):
             settings.parameter_values.append({"name": "KeyShotFile", "value": scene_file})
 
         # Add default values for Conda
+        major_version, minor_version = lux.getKeyShotDisplayVersion()
         settings.parameter_values.append(
-            {"name": "CondaPackages", "value": "keyshot=2024.* keyshot-openjd=0.1.*"}
+            {"name": "CondaPackages", "value": f"keyshot={major_version}.* keyshot-openjd=0.1.*"}
         )
         settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
 
