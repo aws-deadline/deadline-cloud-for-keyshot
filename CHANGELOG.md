@@ -1,3 +1,18 @@
+## 0.2.0 (2024-09-04)
+
+### BREAKING CHANGES
+* replace submitter GUI with bundle GUI submit (#93) ([`05b74b3`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/05b74b3844190de7732ff7cbaf3b87fa3d24168a))
+
+### Features
+* speedup KSP extraction on Windows (#112) ([`e9e9e34`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/e9e9e3412007f83489994cc87a1041edb3cebb01))
+* support ksp bundling (#97) ([`df141f5`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/df141f5cf821fb455896eea888e0a5075f4e6749))
+* submitter prompts user to save changes before submitting (#101) ([`3d56b47`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/3d56b4759b6763fea5f498fe916d78673351310f))
+
+### Bug Fixes
+* add default values for conda packages and channels (#110) ([`d3f3adb`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/d3f3adb90798edbc7d3b7a94c06f45bc9b93ece5))
+* remove submitter dependencies that aren&#39;t available in KeyShot Python (#111) ([`98db5ec`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/98db5ecd40f20f6748f0c9b36cbc22a1061dac28))
+* do not show Success status when submission is cancelled (#102) ([`fc92d0e`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/fc92d0e3a33db929bd9d8f8814ecfc48827f5998))
+
 ## 0.1.3 (2024-06-19)
 
 
