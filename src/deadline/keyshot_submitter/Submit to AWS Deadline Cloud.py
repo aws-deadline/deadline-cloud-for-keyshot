@@ -1,5 +1,5 @@
 # AUTHOR AWS
-# VERSION 0.1.3
+# VERSION 0.2.0
 # Submit to AWS Deadline Cloud
 
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
@@ -512,7 +512,7 @@ def main(lux):
         # Add default values for Conda
         major_version, minor_version = lux.getKeyShotDisplayVersion()
         settings.parameter_values.append(
-            {"name": "CondaPackages", "value": f"keyshot={major_version}.* keyshot-openjd=0.1.*"}
+            {"name": "CondaPackages", "value": f"keyshot={major_version}.* keyshot-openjd=0.2.*"}
         )
         settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
 
