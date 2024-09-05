@@ -1,3 +1,10 @@
+## 0.2.1 (2024-09-05)
+
+
+
+### Bug Fixes
+* auto-install GUI dependencies (#114) ([`cb9f28f`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/cb9f28f0498db15bda6e5ab9570df50987d56444))
+
 ## 0.2.0 (2024-09-04)
 
 ### BREAKING CHANGES
