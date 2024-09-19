@@ -1,0 +1,16 @@
+inputs:
+  semver:
+    required: true
+    type: string
+
+runs:
+  using: composite
+  steps:
+  - name: Update plugin Version
+    shell: bash
+    run: |
+      sed -i "s/^# VERSION.*/# VERSION ${{inputs.semver}}/" ./src/deadline/keyshot_submitter/Submit\ to\ AWS\ Deadline\ Cloud.py
+      major=$(printf ${{inputs.semver}} | cut -d '.' -f1)
+      minor=$(printf ${{inputs.semver}} | cut -d '.' -f2)
+      sed -i "s/keyshot-openjd=[0-9]*.[0-9]*.\\*/keyshot-openjd=$major.$minor.\\*/" ./src/deadline/keyshot_submitter/Submit\ to\ AWS\ Deadline\ Cloud.py
+      git add ./src/deadline/keyshot_submitter/Submit\ to\ AWS\ Deadline\ Cloud.py 
