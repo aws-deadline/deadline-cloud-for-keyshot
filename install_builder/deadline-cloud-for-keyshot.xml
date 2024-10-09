@@ -53,7 +53,7 @@
             </conditionRuleList>
             <actionList>
                 <!-- KeyShot 2024 (and possibly beyond) env var -->
-                <setInstallerVariable name="keyshot_resources_directory" value="${env(KEYSHOT)}"/>
+                <setInstallerVariable name="keyshot_scripts_directory" value="${env(KEYSHOT)}\Scripts"/>
             </actionList>
             <elseActionList>
                 <if>
@@ -66,29 +66,18 @@
                     </conditionRuleList>
                     <actionList>
                         <!-- KeyShot 2023 env var -->
-                        <setInstallerVariable name="keyshot_resources_directory" value="${env(KEYSHOT12)}"/>
+                        <setInstallerVariable name="keyshot_scripts_directory" value="${env(KEYSHOT12)}\Scripts"/>
                     </actionList>
                     <elseActionList>
-                        <setInstallerVariable name="keyshot_resources_directory" value=""/>
+                        <!-- KeyShot 2024 default location as a fallback -->
+                        <setInstallerVariable name="keyshot_scripts_directory" value="${user_home_directory}\Documents\KeyShot\Scripts"/>
                     </elseActionList>
                 </if>
             </elseActionList>
         </if>
-        <if>
-            <conditionRuleList>
-                <compareText>
-                    <text>${keyshot_resources_directory}</text>
-                    <logic>does_not_equal</logic>
-                    <value></value>
-                </compareText>
-            </conditionRuleList>
-            <actionList>
-                <setInstallerVariable name="keyshot_scripts_directory" value="${keyshot_resources_directory}\Scripts"/>
-            </actionList>
-            <elseActionList>
-                <setInstallerVariable name="keyshot_scripts_directory" value=""/>
-            </elseActionList>
-        </if>
+        <createDirectory>
+            <path>${keyshot_scripts_directory}</path>
+        </createDirectory>
     </initializationActionList>
     <parameterList>
         <stringParameter name="deadline_cloud_for_keyshot_summary" ask="0" cliOptionShow="0">
