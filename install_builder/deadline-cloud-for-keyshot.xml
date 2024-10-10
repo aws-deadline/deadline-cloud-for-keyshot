@@ -66,7 +66,7 @@
                     </conditionRuleList>
                     <actionList>
                         <!-- KeyShot 2023 env var -->
-                        <setInstallerVariable name="keyshot_scripts_directory_default" value="${env(KEYSHOT12)}\Scripts"/>
+                        <setInstallerVariable name="keyshot_scripts_directory" value="${env(KEYSHOT12)}\Scripts"/>
                     </actionList>
                     <elseActionList>
                         <setInstallerVariable name="keyshot_scripts_directory" value=""/>
@@ -96,7 +96,7 @@
             <allowEmptyValue>0</allowEmptyValue>
             <ask>yes</ask>
             <cliOptionName>keyshot-scripts-directory</cliOptionName>
-            <cliOptionText>Path to scripts directory in the KeyShot resources directory. For easiest installation, KeyShot should be installed before installing Deadline Cloud for KeyShot.</cliOptionText>
+            <cliOptionText>Path to scripts directory in the KeyShot resources directory. The default value is detected from the KEYSHOT or KEYSHOT12 environment variables if present.</cliOptionText>
             <mustBeWritable>yes</mustBeWritable>
             <mustExist>1</mustExist>
         </directoryParameter>
