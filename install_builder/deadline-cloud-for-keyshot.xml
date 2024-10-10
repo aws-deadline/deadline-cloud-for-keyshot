@@ -96,7 +96,7 @@
             <allowEmptyValue>0</allowEmptyValue>
             <ask>yes</ask>
             <cliOptionName>keyshot-scripts-directory</cliOptionName>
-            <cliOptionText>Path to scripts directory in the KeyShot resources directory. The default value is detected from the KEYSHOT or KEYSHOT12 environment variables if present.</cliOptionText>
+            <cliOptionText>Path to scripts directory in the KeyShot resources directory. When the installer is run, if a KEYSHOT or KEYSHOT12 environment variable is present and valid, this directory will default to the detected Scripts folder.</cliOptionText>
             <mustBeWritable>yes</mustBeWritable>
             <mustExist>1</mustExist>
         </directoryParameter>
