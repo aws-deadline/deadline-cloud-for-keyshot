@@ -53,7 +53,7 @@
             </conditionRuleList>
             <actionList>
                 <!-- KeyShot 2024 (and possibly beyond) env var -->
-                <setInstallerVariable name="keyshot_resources_directory" value="${env(KEYSHOT)}"/>
+                <setInstallerVariable name="keyshot_scripts_directory" value="${env(KEYSHOT)}\Scripts"/>
             </actionList>
             <elseActionList>
                 <if>
@@ -66,28 +66,21 @@
                     </conditionRuleList>
                     <actionList>
                         <!-- KeyShot 2023 env var -->
-                        <setInstallerVariable name="keyshot_resources_directory" value="${env(KEYSHOT12)}"/>
+                        <setInstallerVariable name="keyshot_scripts_directory" value="${env(KEYSHOT12)}\Scripts"/>
                     </actionList>
                     <elseActionList>
-                        <setInstallerVariable name="keyshot_resources_directory" value=""/>
+                        <setInstallerVariable name="keyshot_scripts_directory" value=""/>
                     </elseActionList>
                 </if>
             </elseActionList>
         </if>
         <if>
             <conditionRuleList>
-                <compareText>
-                    <text>${keyshot_resources_directory}</text>
-                    <logic>does_not_equal</logic>
-                    <value></value>
-                </compareText>
+                <fileExists negate="1" path="${keyshot_scripts_directory}"/>
             </conditionRuleList>
             <actionList>
-                <setInstallerVariable name="keyshot_scripts_directory" value="${keyshot_resources_directory}\Scripts"/>
-            </actionList>
-            <elseActionList>
                 <setInstallerVariable name="keyshot_scripts_directory" value=""/>
-            </elseActionList>
+            </actionList>
         </if>
     </initializationActionList>
     <parameterList>
@@ -101,10 +94,9 @@
             <description>KeyShot Scripts Directory</description>
             <explanation>Path to scripts directory in the KeyShot resources directory. For easiest installation, KeyShot should be installed before installing Deadline Cloud for KeyShot.</explanation>
             <allowEmptyValue>0</allowEmptyValue>
-            <default>Will be detected from the KEYSHOT or KEYSHOT12 environment variables during installation. If neither exists and the KeyShot component is enabled, this must be input.</default>
             <ask>yes</ask>
             <cliOptionName>keyshot-scripts-directory</cliOptionName>
-            <cliOptionText>Path to scripts directory in the KeyShot resources directory. For easiest installation, KeyShot should be installed before installing Deadline Cloud for KeyShot.</cliOptionText>
+            <cliOptionText>Path to scripts directory in the KeyShot resources directory. When the installer is run, if a KEYSHOT or KEYSHOT12 environment variable is present and valid, this directory will default to the detected Scripts folder.</cliOptionText>
             <mustBeWritable>yes</mustBeWritable>
             <mustExist>1</mustExist>
         </directoryParameter>
