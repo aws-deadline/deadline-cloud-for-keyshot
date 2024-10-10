@@ -66,18 +66,22 @@
                     </conditionRuleList>
                     <actionList>
                         <!-- KeyShot 2023 env var -->
-                        <setInstallerVariable name="keyshot_scripts_directory" value="${env(KEYSHOT12)}\Scripts"/>
+                        <setInstallerVariable name="keyshot_scripts_directory_default" value="${env(KEYSHOT12)}\Scripts"/>
                     </actionList>
                     <elseActionList>
-                        <!-- KeyShot 2024 default location as a fallback -->
-                        <setInstallerVariable name="keyshot_scripts_directory" value="${user_home_directory}\Documents\KeyShot\Scripts"/>
+                        <setInstallerVariable name="keyshot_scripts_directory" value=""/>
                     </elseActionList>
                 </if>
             </elseActionList>
         </if>
-        <createDirectory>
-            <path>${keyshot_scripts_directory}</path>
-        </createDirectory>
+        <if>
+            <conditionRuleList>
+                <fileExists negate="1" path="${keyshot_scripts_directory}"/>
+            </conditionRuleList>
+            <actionList>
+                <setInstallerVariable name="keyshot_scripts_directory" value=""/>
+            </actionList>
+        </if>
     </initializationActionList>
     <parameterList>
         <stringParameter name="deadline_cloud_for_keyshot_summary" ask="0" cliOptionShow="0">
@@ -90,7 +94,6 @@
             <description>KeyShot Scripts Directory</description>
             <explanation>Path to scripts directory in the KeyShot resources directory. For easiest installation, KeyShot should be installed before installing Deadline Cloud for KeyShot.</explanation>
             <allowEmptyValue>0</allowEmptyValue>
-            <default>Will be detected from the KEYSHOT or KEYSHOT12 environment variables during installation. If neither exists and the KeyShot component is enabled, this must be input.</default>
             <ask>yes</ask>
             <cliOptionName>keyshot-scripts-directory</cliOptionName>
             <cliOptionText>Path to scripts directory in the KeyShot resources directory. For easiest installation, KeyShot should be installed before installing Deadline Cloud for KeyShot.</cliOptionText>
