@@ -1,3 +1,12 @@
+## 0.2.2 (2024-10-16)
+
+
+
+### Bug Fixes
+* downgrade python-semantic-release to fix changelog (#126) ([`1cd8331`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/1cd8331d92abbfc037e4f89dc294d10cbf4639cf))
+* update installer to locate KeyShot scripts directory in more cases (#123) ([`70c1d52`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/70c1d52833603d7f932897ad2c7484a2f2e3e8ed))
+* use consistent version strings for Keyshot (#121) ([`7a60bcb`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/7a60bcbe604272ea81cf7cc071789db3b75dad4d))
+
 ## 0.2.1 (2024-09-05)
 
 
