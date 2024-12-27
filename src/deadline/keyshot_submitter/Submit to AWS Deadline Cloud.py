@@ -166,6 +166,9 @@ def construct_job_template(filename: str) -> dict:
         "steps": [
             {
                 "name": "Render",
+                "hostRequirements": {
+                    "attributes": [{"name": "attr.worker.os.family", "anyOf": ["windows"]}]
+                },
                 "parameterSpace": {
                     "taskParameterDefinitions": [
                         {"name": "Frame", "type": "INT", "range": "{{Param.Frames}}"}
@@ -190,7 +193,7 @@ def construct_job_template(filename: str) -> dict:
                             ],
                             "actions": {
                                 "onEnter": {
-                                    "command": "KeyShotAdaptor",
+                                    "command": "keyshot-openjd",
                                     "args": [
                                         "daemon",
                                         "start",
@@ -204,7 +207,7 @@ def construct_job_template(filename: str) -> dict:
                                     "cancelation": {"mode": "NOTIFY_THEN_TERMINATE"},
                                 },
                                 "onExit": {
-                                    "command": "KeyShotAdaptor",
+                                    "command": "keyshot-openjd",
                                     "args": [
                                         "daemon",
                                         "stop",
@@ -228,7 +231,7 @@ def construct_job_template(filename: str) -> dict:
                     ],
                     "actions": {
                         "onRun": {
-                            "command": "KeyShotAdaptor",
+                            "command": "keyshot-openjd",
                             "args": [
                                 "daemon",
                                 "run",
