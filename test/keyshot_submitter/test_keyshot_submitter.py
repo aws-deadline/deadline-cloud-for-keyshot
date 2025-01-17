@@ -192,7 +192,9 @@ def test_settings_apply_submitter_settings():
     )
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        with open(os.path.join(temp_dir, "parameter_values.json"), "w") as parameter_values_file:
+        with open(
+            os.path.join(temp_dir, "parameter_values.json"), "w", encoding="utf-8"
+        ) as parameter_values_file:
             json.dump(
                 {
                     "parameterValues": [
@@ -204,7 +206,9 @@ def test_settings_apply_submitter_settings():
                 },
                 parameter_values_file,
             )
-        with open(os.path.join(temp_dir, "asset_references.json"), "w") as asset_references_file:
+        with open(
+            os.path.join(temp_dir, "asset_references.json"), "w", encoding="utf-8"
+        ) as asset_references_file:
             json.dump(
                 {
                     "assetReferences": {
@@ -280,9 +284,9 @@ def test_get_ksp_bundle_files():
     with tempfile.TemporaryDirectory() as temp_dir:
         to_zip_dir = os.path.join(temp_dir, "to_zip")
         os.mkdir(to_zip_dir)
-        with open(os.path.join(to_zip_dir, TEST_SCENE_FILE), "w") as file:
+        with open(os.path.join(to_zip_dir, TEST_SCENE_FILE), "w", encoding="utf-8") as file:
             file.write("test scene")
-        with open(os.path.join(to_zip_dir, TEST_ASSET_FILE), "w") as file:
+        with open(os.path.join(to_zip_dir, TEST_ASSET_FILE), "w", encoding="utf-8") as file:
             file.write("test asset")
 
         # Creating a zip archive as that's what is used to unpack a ksp and a ksp

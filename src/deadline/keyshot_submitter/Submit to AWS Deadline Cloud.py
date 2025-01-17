@@ -73,11 +73,11 @@ class Settings:
         if not job_bundle_history_dir:
             return
         with open(
-            os.path.join(job_bundle_history_dir, "parameter_values.json")
+            os.path.join(job_bundle_history_dir, "parameter_values.json"), encoding="utf-8"
         ) as parameter_values_file:
             self.parameter_values = json.load(parameter_values_file).get("parameterValues", [])
         with open(
-            os.path.join(job_bundle_history_dir, "asset_references.json")
+            os.path.join(job_bundle_history_dir, "asset_references.json"), encoding="utf-8"
         ) as asset_references_file:
             asset_references_contents = json.load(asset_references_file)
         asset_references = asset_references_contents.get("assetReferences", {})
@@ -277,7 +277,7 @@ def construct_parameter_values(settings: Settings) -> dict:
 
 
 def dump_json_to_dir(contents: dict, directory: str, filename: str) -> None:
-    with open(os.path.join(directory, filename), "w") as file:
+    with open(os.path.join(directory, filename), "w", encoding="utf-8") as file:
         file.write(json.dumps(contents))
 
 
