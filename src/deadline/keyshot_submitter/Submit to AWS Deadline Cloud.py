@@ -126,7 +126,7 @@ def construct_job_template(filename: str) -> dict:
                     "label": "Frames",
                     "groupLabel": "KeyShot Settings",
                 },
-                "description": "The frames to render. E.g. 1-3,8,11-15",
+                "description": "The frames to render e.g. 1-3,8,11-15",
                 "minLength": 1,
             },
             {
@@ -144,7 +144,7 @@ def construct_job_template(filename: str) -> dict:
             {
                 "name": "OutputFormat",
                 "type": "STRING",
-                "description": "The render output format",
+                "description": "The render output format.",
                 "allowedValues": [
                     "PNG",
                     "JPEG",
@@ -158,7 +158,7 @@ def construct_job_template(filename: str) -> dict:
                 "default": "PNG",
                 "userInterface": {
                     "control": "DROPDOWN_LIST",
-                    "label": "Output Format(Must match file extension)",
+                    "label": "Output Format (must match file extension)",
                     "groupLabel": "KeyShot Settings",
                 },
             },
