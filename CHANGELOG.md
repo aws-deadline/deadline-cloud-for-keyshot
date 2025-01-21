@@ -1,3 +1,14 @@
+## 0.3.0 (2025-01-21)
+
+
+### Features
+* **adaptor**: Update KeyShot environment variable to KEYSHOT_EXECUTABLE (#144) ([`ca50175`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/ca50175bace3d2c2ee2d97e653100b81a77d43af))
+
+### Bug Fixes
+* use utf-8 encoding for file reads and writes to fix utf-8 encoding issues on Windows (#150) ([`dc9ec7e`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/dc9ec7e6a3d877b2b51070982f6b21d5078360f3))
+* use keyshot-openjd in submitter (#146) ([`11286d7`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/11286d7b9b187a546607daec42ff2d5257b4036f))
+* use only Windows workers by default (#145) ([`5a6b635`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/5a6b63551e41be1d964ec30c6cdd3c0cff8c9838))
+
 ## 0.2.2 (2024-10-16)
 
 
