@@ -1,0 +1,22 @@
+name: Build adaptor conda package
+run-name: ${{ github.actor }} is building an adaptor conda package from ${{ github.ref }}
+on: [workflow_dispatch]
+jobs:
+  Build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Conda environment creation and activation
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: '3.11'
+          channels: conda-forge
+          activate-environment: adaptor-build-environment
+          environment-file: conda/adaptor-recipe/environment.yml
+      - name: 'Test Build'
+        shell: bash -el {0}
+        run: conda build --no-verify --no-anaconda-upload ./conda/adaptor-recipe --output-folder dist
+      - name: 'Upload artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          path: dist/**/*.conda

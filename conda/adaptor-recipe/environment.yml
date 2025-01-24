@@ -1,0 +1,7 @@
+name: adaptor-build-environment
+channels:
+  - conda-forge
+dependencies:
+  - conda-build
+  - pip
+  - hatch

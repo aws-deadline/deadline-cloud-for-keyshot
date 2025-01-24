@@ -92,6 +92,14 @@ Or you can set the `KEYSHOT_EXECUTABLE` to point to the Keyshot executable.
     - e.g. System install: `setx PATH "%PROGRAMFILES%\KeyShot\bin;%PATH%"`
     - Verify by running `keyshot_headless -h`
 
+## Conda packages
+An easy way of running KeyShot and the adaptor is using Conda. There are example conda recipes for building conda packages under `/conda`.
+
+To build a conda package, you can either:
+1. Build using a GitHub action. Forking this reposotiry, click on Actions on your fork's page, then run the appropriate action.
+2. Build locally. Run `conda build --no-verify ./conda/adaptor-recipe` from the root of this repository.
+
+
 ## Versioning
 
 This package's version follows [Semantic Versioning 2.0](https://semver.org/), but is still considered to be in its
