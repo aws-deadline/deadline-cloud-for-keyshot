@@ -264,6 +264,28 @@ def test_unsaved_changes_prompt():
     local_mock_lux.saveFile.assert_called()
 
 
+def test_auto_pause_resume():
+    local_mock_lux = mock.Mock()
+    local_mock_lux.isPaused = mock.Mock()
+    local_mock_lux.pause = mock.Mock()
+    local_mock_lux.unpause = mock.Mock()
+
+    # Throw an exception to cut the submitter short
+    local_mock_lux.isSceneChanged.side_effect = Exception()
+
+    local_mock_lux.isPaused.return_value = True
+    with pytest.raises(Exception):
+        submitter.main(local_mock_lux)
+    local_mock_lux.pause.assert_not_called()
+    local_mock_lux.unpause.assert_not_called()
+
+    local_mock_lux.isPaused.return_value = False
+    with pytest.raises(Exception):
+        submitter.main(local_mock_lux)
+    local_mock_lux.pause.assert_called()
+    local_mock_lux.unpause.assert_called()
+
+
 def test_save_ksp_bundle():
     dir = os.path.normpath("/testdir/test")
     bundle_name = "test_bundle.ksp"
