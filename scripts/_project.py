@@ -25,7 +25,7 @@ def get_project_dict(project_path: Optional[Path] = None) -> dict[str, Any]:
         mode = "rb"
 
     with open(
-        str((project_path or get_git_root()) / "pyproject.toml"), mode, encoding="utf-8"
+        str((project_path or get_git_root()) / "pyproject.toml"), mode
     ) as pyproject_toml:
         return toml.load(pyproject_toml)
 
