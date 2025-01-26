@@ -11,6 +11,10 @@ AWS Deadline Cloud for KeyShot is a python package that allows users to create [
 [openjd]: https://github.com/OpenJobDescription/openjd-specifications/wiki
 [openjd-adaptor-runtime]: https://github.com/OpenJobDescription/openjd-adaptor-runtime-for-python
 [openjd-adaptor-runtime-lifecycle]: https://github.com/OpenJobDescription/openjd-adaptor-runtime-for-python/blob/release/README.md#adaptor-lifecycle
+[default-queue-environment]: https://docs.aws.amazon.com/deadline-cloud/latest/userguide/create-queue-environment.html#conda-queue-environment
+[deadline-cloud-submitter]: https://docs.aws.amazon.com/deadline-cloud/latest/userguide/submitter.html
+[deadline-cloud-monitor]: https://docs.aws.amazon.com/deadline-cloud/latest/userguide/monitor-onboarding.html
+[usage-based-licensing]: https://aws.amazon.com/deadline-cloud/features/
 
 ## Compatibility
 
@@ -22,11 +26,33 @@ This library requires:
 > [!NOTE]  
 > Deadline Cloud service-managed fleets have built-in support for KeyShot 2024 only. When submitting a job from KeyShot 2023, you can still render your job on KeyShot 2024 by updating the "Conda Packages" field in the submitter specify `keyshot=2024.*`.
 
+## Getting Started
+
+The KeyShot integration for Deadline Cloud has two components that you will need to install:
+
+1. The KeyShot submitter extension must be installed on the workstation that you will use to submit jobs; and
+2. The KeyShot adaptor must be installed on all of your Deadline Cloud worker hosts that will be running the KeyShot jobs that you submit.
+
+Before submitting any large, complex, or otherwise compute-heavy Keyshot render jobs to your farm using the submitter and adaptor that you
+set up, we strongly recommend that you construct a simple test scene that can be rendered quickly and submit renders of that scene to your farm to ensure that your setup is functioning correctly.
+
 ## Submitter
 
-This package provides a KeyShot plugin script that creates jobs for AWS Deadline Cloud using the [AWS Deadline Cloud client library][deadline-cloud-client]. Based on the loaded scene it determines the files required, allows the user to specify render options with KeyShot's render interface, and builds an [OpenJD template][openjd] that defines the workflow.
+The KeyShot submitter extension creates a button in KeyShot (`Window` > `Scripting Console` > `Scripts` > `Submit to AWS Deadline Cloud` > `Run`) that can be used to submit jobs to Deadline Cloud. Clicking this button reveals an interface to submit a job to Deadline Cloud.
+It automatically determines the files required based on the loaded scene, allows the user to specify render options, builds an
+[Open Job Description template][openjd] that defines the workflow, and submits the job to the farm and queue of your choosing.
 
-### Installing and using the KeyShot Submitter
+There are two installation options:
+1. Windows-only: install the submitter using the official Deadline Cloud submitter installer
+2. Windows or Mac: manually install the submitter
+
+For most setups, you will also need to install the [Deadline Cloud monitor](deadline-cloud-monitor).
+
+### Install the submitter using the official Deadline Cloud submitter installer
+
+The [official Deadline Cloud submitter installer](deadline-cloud-submitter) for Windows includes the KeyShot submitter. After installing, you can access the submitter in the KeyShot interface via `Window` > `Scripting Console` > `Scripts` > `Submit to AWS Deadline Cloud` > `Run`.
+
+### Manually installing the submitter
 
 1. Run `pip install deadline[gui]`
 2. Copy the file `deadline-cloud-for-keyshot/src/deadline/keyshot_submitter/Submit to AWS Deadline Cloud.py` to the KeyShot scripts folder for your OS:
@@ -37,7 +63,7 @@ This package provides a KeyShot plugin script that creates jobs for AWS Deadline
         - You can navigate to the folder by going to Finder, clicking the menu for Go -> Go to Folder, and typing in the folder path.
 3. Launch KeyShot. The submitter can be launched within KeyShot from `Window > Scripting Console > Scripts > Submit to AWS Deadline Cloud > Run`
 
-#### Submission Modes
+## Submission Modes
 
 There are two submission modes for the KeyShot submitter which a dialog will ask you to select from before opening the submitter UI.
 
@@ -57,16 +83,32 @@ There are two submission modes for the KeyShot submitter which a dialog will ask
 
 ## Adaptor
 
+Jobs created by the KeyShot submitter require the adaptor to be installed on your worker hosts.
+
 The KeyShot Adaptor implements the [OpenJD][openjd-adaptor-runtime] interface that allows render workloads to launch KeyShot and feed it commands. This gives the following benefits:
 * a standardized render application interface,
 * sticky rendering, where the application stays open between tasks
 
-Jobs created by the submitter use this adaptor by default, and require that both the installed adaptor
-and the KeyShot executable be available on the PATH of the user that will be running your jobs.
+Both fleet types in Deadline Cloud support the KeyShot adaptor:
+1. Service-managed fleets
+2. Customer-managed fleets
 
-Or you can set the `KEYSHOT_EXECUTABLE` to point to the Keyshot executable.
+The KeyShot integration for Deadline Cloud is supported on Windows fleets (service-managed and customer-managed).
+Linux support is experimental and can only be done on customer-managed fleets.
 
-### Using the KeyShot Adaptor
+### Service-managed fleets
+
+On [service-managed fleets](service-managed-fleets), the KeyShot adaptor is automatically available via the `deadline-cloud` Conda channel with the [default Queue Environment][default-queue-environment].
+
+### Customer-managed fleets
+
+Keyshot must be manually installed on worker hosts of customer-managed fleets.
+
+#### Manually installing on worker hosts
+
+Both the installed adaptor and the KeyShot executable (`keyshot_headless.exe`) must be available on the PATH of the user that will be running your jobs.
+
+You can also set the `KEYSHOT_EXECUTABLE` to point to the KeyShot executable. The adaptor must still be on the PATH.
 
 1. Build and install `deadline-cloud-for-keyshot` on your workers
     - The adaptor can be installed by the standard python packaging mechanisms:
@@ -95,15 +137,29 @@ Or you can set the `KEYSHOT_EXECUTABLE` to point to the Keyshot executable.
     - e.g. System install: `setx PATH "%PROGRAMFILES%\KeyShot\bin;%PATH%"`
     - Verify by running `keyshot_headless -h`
 
-## Versioning
+## Worker Licensing for KeyShot
 
-This package's version follows [Semantic Versioning 2.0](https://semver.org/), but is still considered to be in its
-initial development, thus backwards incompatible versions are denoted by minor version bumps. To help illustrate how
-versions will increment during this initial development stage, they are described below:
+### Service-Managed Fleets
 
-1. The MAJOR version is currently 0, indicating initial development.
-2. The MINOR version is currently incremented when backwards incompatible changes are introduced to the public API.
-3. The PATCH version is currently incremented when bug fixes or backwards compatible changes are introduced to the public API.
+[Usage based licensing](usage-based-licensing) for KeyShot 2023 and 2024 is available on Deadline Cloud service-managed fleets with no additional setup.
+
+If you prefer to use your own licensing for service-managed fleets, you can also [connect service-managed fleets to a custom license server](https://docs.aws.amazon.com/deadline-cloud/latest/developerguide/smf-byol.html).
+
+### Customer-Managed Fleets
+
+You can use [usage based licensing](usage-based-licensing) on customer-managed fleets by [connecting them to a license endpoint](https://docs.aws.amazon.com/deadline-cloud/latest/developerguide/cmf-ubl.html).
+
+You can also use your own licensing for customer-managed fleets.
+
+## Viewing the Job Bundle that will be submitted
+
+To submit a job, the submitter first generates a [Job Bundle][job-bundle], and then uses functionality from the
+[Deadline client library][deadline-cloud-client] package to submit the Job Bundle to your render farm to run. If you would like to see
+the job that will be submitted to your farm, then you can use the "Export Bundle" button in the submitter to export the
+Job Bundle to a location of your choice. If you want to submit the job from the export, rather than through the
+submitter plug-in then you can use the [Deadline Cloud application][deadline-cloud-client] to submit that bundle to your farm.
+
+[job-bundle]: https://docs.aws.amazon.com/deadline-cloud/latest/developerguide/build-job-bundle.html
 
 ## Security
 
