@@ -457,103 +457,104 @@ def get_ksp_bundle_files(directory: str) -> Tuple[str, list[str]]:
 
 def main(lux):
     if lux.isPaused():
-        should_unpause_on_finish = False
+        # If rendering is already paused, run the function normally
+        main_inner(lux)
     else:
-        should_unpause_on_finish = True
-        lux.pause()
+        # If render is not already paused, pause while running then resume
+        try:
+            lux.pause()
+            main_inner(lux)
+        finally:
+            lux.unpause()
 
-    try:
-        if lux.isSceneChanged():
-            result = lux.getInputDialog(
-                title="Unsaved changes",
-                values=[
-                    (lux.DIALOG_LABEL, "You have unsaved changes. Do you want to save your file?")
-                ],
-            )
-            # result is {} if the user clicks Ok and None if the user clicks cancel
-            if result is None:
-                # Raise an exception so Keyshot shows the script's result status as "Failure" instead of "Success"
-                raise Exception("Changes must be saved before submitting.")
-            else:
-                lux.saveFile()
 
-        dialog_selections = options_dialog()
+def main_inner(lux):
+    if lux.isSceneChanged():
+        result = lux.getInputDialog(
+            title="Unsaved changes",
+            values=[(lux.DIALOG_LABEL, "You have unsaved changes. Do you want to save your file?")],
+        )
+        # result is {} if the user clicks Ok and None if the user clicks cancel
+        if result is None:
+            # Raise an exception so Keyshot shows the script's result status as "Failure" instead of "Success"
+            raise Exception("Changes must be saved before submitting.")
+        else:
+            lux.saveFile()
 
-        if not dialog_selections:
-            # Dialog was canceled. Raise an exception so Keyshot does not show the script's result status as "Success"
+    dialog_selections = options_dialog()
+
+    if not dialog_selections:
+        # Dialog was canceled. Raise an exception so Keyshot does not show the script's result status as "Success"
+        raise Exception("Submission was canceled.")
+
+    scene_info = lux.getSceneInfo()
+    scene_file = scene_info["file"]
+    scene_name, _ = os.path.splitext(scene_info["name"])
+    current_frame = lux.getAnimationFrame()
+    frame_count = lux.getAnimationInfo().get("frames")
+
+    settings = Settings(
+        parameter_values=[
+            {
+                "name": "Frames",
+                "value": f"1-{frame_count}" if frame_count else f"{current_frame}",
+            },
+            {
+                "name": "OutputFilePath",
+                "value": os.path.join(os.path.dirname(scene_file), f"{scene_name}.%d.png"),
+            },
+            {
+                "name": "OutputFormat",
+                "value": "PNG",
+            },
+        ],
+        input_filenames=[],
+        auto_detected_input_filenames=[],
+        input_directories=[],
+        output_directories=[],
+        referenced_paths=[],
+    )
+
+    sticky_settings = load_sticky_settings(scene_file)
+    if sticky_settings:
+        settings.apply_sticky_settings(sticky_settings)
+
+    with tempfile.TemporaryDirectory() as bundle_temp_dir:
+        # {'submission_mode': [0, 'the scene BIP file and all external files references']}
+        if not dialog_selections[SUBMISSION_MODE_KEY][0]:
+            temp_scene_file, input_filenames = get_ksp_bundle_files(bundle_temp_dir)
+            settings.auto_detected_input_filenames = input_filenames
+            settings.parameter_values.append({"name": "KeyShotFile", "value": temp_scene_file})
+        else:
+            settings.parameter_values.append({"name": "KeyShotFile", "value": scene_file})
+
+        # Add default values for Conda
+        major_version, minor_version = lux.getKeyShotDisplayVersion()
+        settings.parameter_values.append(
+            {
+                "name": "CondaPackages",
+                "value": f"keyshot={major_version}.* keyshot-openjd=0.3.*",
+            }
+        )
+        settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
+
+        job_template = construct_job_template(scene_name)
+        asset_references = construct_asset_references(settings)
+        parameter_values = construct_parameter_values(settings)
+
+        dump_json_to_dir(job_template, bundle_temp_dir, "template.json")
+        dump_json_to_dir(asset_references, bundle_temp_dir, "asset_references.json")
+        dump_json_to_dir(parameter_values, bundle_temp_dir, "parameter_values.json")
+
+        output = gui_submit(bundle_temp_dir)
+
+    if output:
+        if output.get("status") == "CANCELED":
+            # Raise an exception so Keyshot does not show the script's result status as "Success"
             raise Exception("Submission was canceled.")
 
-        scene_info = lux.getSceneInfo()
-        scene_file = scene_info["file"]
-        scene_name, _ = os.path.splitext(scene_info["name"])
-        current_frame = lux.getAnimationFrame()
-        frame_count = lux.getAnimationInfo().get("frames")
-
-        settings = Settings(
-            parameter_values=[
-                {
-                    "name": "Frames",
-                    "value": f"1-{frame_count}" if frame_count else f"{current_frame}",
-                },
-                {
-                    "name": "OutputFilePath",
-                    "value": os.path.join(os.path.dirname(scene_file), f"{scene_name}.%d.png"),
-                },
-                {
-                    "name": "OutputFormat",
-                    "value": "PNG",
-                },
-            ],
-            input_filenames=[],
-            auto_detected_input_filenames=[],
-            input_directories=[],
-            output_directories=[],
-            referenced_paths=[],
-        )
-
-        sticky_settings = load_sticky_settings(scene_file)
-        if sticky_settings:
-            settings.apply_sticky_settings(sticky_settings)
-
-        with tempfile.TemporaryDirectory() as bundle_temp_dir:
-            # {'submission_mode': [0, 'the scene BIP file and all external files references']}
-            if not dialog_selections[SUBMISSION_MODE_KEY][0]:
-                temp_scene_file, input_filenames = get_ksp_bundle_files(bundle_temp_dir)
-                settings.auto_detected_input_filenames = input_filenames
-                settings.parameter_values.append({"name": "KeyShotFile", "value": temp_scene_file})
-            else:
-                settings.parameter_values.append({"name": "KeyShotFile", "value": scene_file})
-
-            # Add default values for Conda
-            major_version, minor_version = lux.getKeyShotDisplayVersion()
-            settings.parameter_values.append(
-                {
-                    "name": "CondaPackages",
-                    "value": f"keyshot={major_version}.* keyshot-openjd=0.3.*",
-                }
-            )
-            settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
-
-            job_template = construct_job_template(scene_name)
-            asset_references = construct_asset_references(settings)
-            parameter_values = construct_parameter_values(settings)
-
-            dump_json_to_dir(job_template, bundle_temp_dir, "template.json")
-            dump_json_to_dir(asset_references, bundle_temp_dir, "asset_references.json")
-            dump_json_to_dir(parameter_values, bundle_temp_dir, "parameter_values.json")
-
-            output = gui_submit(bundle_temp_dir)
-
-        if output:
-            if output.get("status") == "CANCELED":
-                # Raise an exception so Keyshot does not show the script's result status as "Success"
-                raise Exception("Submission was canceled.")
-
-            settings.apply_submitter_settings(output)
-            save_sticky_settings(scene_file, settings)
-    finally:
-        if should_unpause_on_finish:
-            lux.unpause()
+        settings.apply_submitter_settings(output)
+        save_sticky_settings(scene_file, settings)
 
 
 if __name__ == "__main__":
