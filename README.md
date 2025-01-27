@@ -19,6 +19,9 @@ This library requires:
 1. Python 3.9 or higher; and
 1. Windows or macOS operating system for job submission and Windows operating system for job rendering
 
+> [!NOTE]  
+> Deadline Cloud service-managed fleets have built-in support for KeyShot 2024 only. When submitting a job from KeyShot 2023, you can still render your job on KeyShot 2024 by updating the "Conda Packages" field in the submitter specify `keyshot=2024.*`.
+
 ## Submitter
 
 This package provides a KeyShot plugin script that creates jobs for AWS Deadline Cloud using the [AWS Deadline Cloud client library][deadline-cloud-client]. Based on the loaded scene it determines the files required, allows the user to specify render options with KeyShot's render interface, and builds an [OpenJD template][openjd] that defines the workflow.
