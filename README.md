@@ -20,7 +20,7 @@ This library requires:
 1. Windows or macOS operating system for job submission and Windows operating system for job rendering
 
 > [!NOTE]  
-> Deadline Cloud service-mangaged fleets have built-in access to KeyShot 2024 only. When submitting a job from KeyShot 2023, you can still render your job on KeyShot 2024 by updating the "Conda Packages" field in the submitter specify `keyshot=2024.*`.
+> Deadline Cloud service-managed fleets have built-in support for KeyShot 2024 only. When submitting a job from KeyShot 2023, you can still render your job on KeyShot 2024 by updating the "Conda Packages" field in the submitter specify `keyshot=2024.*`.
 
 ## Submitter
 
