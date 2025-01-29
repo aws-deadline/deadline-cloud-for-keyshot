@@ -1,0 +1,43 @@
+#usda 1.0
+(
+    doc = "KeyShot"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "lux_root"
+{
+    def Xform "Default"
+    {
+        def Mesh "Cube"
+        {
+            uniform bool doubleSided = 1
+            int[] faceVertexCounts = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+            int[] faceVertexIndices = [2, 0, 1, 0, 2, 3, 3, 4, 0, 4, 3, 5, 5, 6, 4, 6, 5, 7, 7, 1, 6, 1, 7, 2, 1, 4, 6, 4, 1, 0, 2, 5, 3, 5, 2, 7]
+            rel material:binding = </lux_root/Default/Cube_Material>
+            point3f[] points = [(0.5, 0.5, -0.5), (0.5, 0.5, 0.5), (0.5, -0.5, 0.5), (0.5, -0.5, -0.5), (-0.5, 0.5, -0.5), (-0.5, -0.5, -0.5), (-0.5, 0.5, 0.5), (-0.5, -0.5, 0.5)]
+            normal3f[] primvars:normals = [(1, 0, 0), (1, 0, 0), (1, 0, 0), (1, 0, 0), (0, 0, -1), (0, 0, -1), (0, 0, -1), (0, 0, -1), (-1, 5.15768e-17, 0), (-1, 0, 0), (-1, 0, 0), (-1, 0, 0), (0, -0, 1), (0, -0, 1), (0, -0, 1), (0, 0, 1), (0, 1, 0), (0, 1, 0), (0, 1, 0), (0, 1, 0), (0, -1, 0), (0, -1, 0), (0, -1, 0), (0, -1, 0)] (
+                interpolation = "faceVarying"
+            )
+            int[] primvars:normals:indices = [2, 0, 1, 0, 2, 3, 6, 4, 5, 4, 6, 7, 10, 8, 9, 8, 10, 11, 14, 12, 13, 12, 14, 15, 18, 16, 17, 16, 18, 19, 22, 20, 21, 20, 22, 23]
+            uniform token subdivisionScheme = "none"
+            matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0.5, 0, 1) )
+            uniform token[] xformOpOrder = ["xformOp:transform"]
+        }
+
+        def Material "Cube_Material"
+        {
+            token outputs:surface.connect = </lux_root/Default/Cube_Material/PBRShader.outputs:surface>
+
+            def Shader "PBRShader"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.199862, 0.301423, 0.49827)
+                float inputs:metallic = 0
+                float inputs:opacity = 1
+                float inputs:roughness = 1
+                token outputs:surface
+            }
+        }
+    }
+}

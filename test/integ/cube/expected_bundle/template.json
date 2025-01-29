@@ -1,0 +1,159 @@
+{
+    "specificationVersion": "jobtemplate-2023-09",
+    "name": "scene",
+    "parameterDefinitions": [
+        {
+            "name": "KeyShotFile",
+            "type": "PATH",
+            "objectType": "FILE",
+            "dataFlow": "IN",
+            "userInterface": {
+                "control": "HIDDEN",
+                "label": "KeyShot Package File",
+                "groupLabel": "KeyShot Settings"
+            },
+            "description": "The KeyShot package file to render.",
+            "default": ""
+        },
+        {
+            "name": "Frames",
+            "type": "STRING",
+            "userInterface": {
+                "control": "LINE_EDIT",
+                "label": "Frames",
+                "groupLabel": "KeyShot Settings"
+            },
+            "description": "The frames to render e.g. 1-3,8,11-15",
+            "minLength": 1
+        },
+        {
+            "name": "OutputFilePath",
+            "type": "PATH",
+            "objectType": "FILE",
+            "dataFlow": "OUT",
+            "userInterface": {
+                "control": "CHOOSE_OUTPUT_FILE",
+                "label": "Output File Path",
+                "groupLabel": "KeyShot Settings"
+            },
+            "description": "The render output path."
+        },
+        {
+            "name": "OutputFormat",
+            "type": "STRING",
+            "description": "The render output format.",
+            "allowedValues": [
+                "PNG",
+                "JPEG",
+                "EXR",
+                "TIFF8",
+                "TIFF32",
+                "PSD8",
+                "PSD16",
+                "PSD32"
+            ],
+            "default": "PNG",
+            "userInterface": {
+                "control": "DROPDOWN_LIST",
+                "label": "Output Format (must match file extension)",
+                "groupLabel": "KeyShot Settings"
+            }
+        }
+    ],
+    "steps": [
+        {
+            "name": "Render",
+            "hostRequirements": {
+                "attributes": [
+                    {
+                        "name": "attr.worker.os.family",
+                        "anyOf": [
+                            "windows"
+                        ]
+                    }
+                ]
+            },
+            "parameterSpace": {
+                "taskParameterDefinitions": [
+                    {
+                        "name": "Frame",
+                        "type": "INT",
+                        "range": "{{Param.Frames}}"
+                    }
+                ]
+            },
+            "stepEnvironments": [
+                {
+                    "name": "KeyShot",
+                    "description": "Runs KeyShot in the background.",
+                    "script": {
+                        "embeddedFiles": [
+                            {
+                                "name": "initData",
+                                "filename": "init-data.yaml",
+                                "type": "TEXT",
+                                "data": "scene_file: '{{Param.KeyShotFile}}'\noutput_file_path: '{{Param.OutputFilePath}}'\noutput_format: 'RENDER_OUTPUT_{{Param.OutputFormat}}'\n"
+                            }
+                        ],
+                        "actions": {
+                            "onEnter": {
+                                "command": "keyshot-openjd",
+                                "args": [
+                                    "daemon",
+                                    "start",
+                                    "--path-mapping-rules",
+                                    "file://{{Session.PathMappingRulesFile}}",
+                                    "--connection-file",
+                                    "{{Session.WorkingDirectory}}/connection.json",
+                                    "--init-data",
+                                    "file://{{Env.File.initData}}"
+                                ],
+                                "cancelation": {
+                                    "mode": "NOTIFY_THEN_TERMINATE"
+                                }
+                            },
+                            "onExit": {
+                                "command": "keyshot-openjd",
+                                "args": [
+                                    "daemon",
+                                    "stop",
+                                    "--connection-file",
+                                    "{{ Session.WorkingDirectory }}/connection.json"
+                                ],
+                                "cancelation": {
+                                    "mode": "NOTIFY_THEN_TERMINATE"
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
+            "script": {
+                "embeddedFiles": [
+                    {
+                        "name": "runData",
+                        "filename": "run-data.yaml",
+                        "type": "TEXT",
+                        "data": "frame: {{Task.Param.Frame}}\n"
+                    }
+                ],
+                "actions": {
+                    "onRun": {
+                        "command": "keyshot-openjd",
+                        "args": [
+                            "daemon",
+                            "run",
+                            "--connection-file",
+                            "{{ Session.WorkingDirectory }}/connection.json",
+                            "--run-data",
+                            "file://{{ Task.File.runData }}"
+                        ],
+                        "cancelation": {
+                            "mode": "NOTIFY_THEN_TERMINATE"
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

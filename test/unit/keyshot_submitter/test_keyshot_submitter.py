@@ -328,6 +328,11 @@ def test_auto_pause_resume(
     mock_lux_unpause.assert_called()
 
 
+def test_error_if_export_dir_but_also_gui():
+    with pytest.raises(RuntimeError):
+        submitter.main(show_gui=True, export_dir="test_dir")
+
+
 def test_save_ksp_bundle(mock_lux_save_package):
     dir = os.path.normpath("/testdir/test")
     bundle_name = "test_bundle.ksp"

@@ -1,0 +1,28 @@
+{
+    "parameterValues": [
+        {
+            "name": "Frames",
+            "value": "0"
+        },
+        {
+            "name": "OutputFilePath",
+            "value": "PATH_TO_BE_REPLACED\\deadline-cloud-for-keyshot\\test\\integ\\cube\\scene.%d.png"
+        },
+        {
+            "name": "OutputFormat",
+            "value": "PNG"
+        },
+        {
+            "name": "KeyShotFile",
+            "value": "PATH_TO_BE_REPLACED\\deadline-cloud-for-keyshot\\test\\integ\\cube\\actual_bundle\\unpack\\scene.bip"
+        },
+        {
+            "name": "CondaPackages",
+            "value": "keyshot=2023.* keyshot-openjd=0.3.*"
+        },
+        {
+            "name": "CondaChannels",
+            "value": "deadline-cloud"
+        }
+    ]
+}
