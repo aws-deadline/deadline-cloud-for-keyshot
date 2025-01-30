@@ -1,15 +1,60 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-import mock_lux  # type: ignore[import-not-found] # noqa: F401
-
 import json
 import os
-import tempfile
-import pytest
 import shutil
+import tempfile
 from unittest import mock
 
+import pytest
+
+from .. import lux_import_override  # noqa F401
+
+# We can't use traditional imports due to spaces in the file name.
+# The spaces are necessary because KeyShot uses the file name as the script name.
 deadline = __import__("deadline.keyshot_submitter.Submit to AWS Deadline Cloud")
 submitter = getattr(deadline.keyshot_submitter, "Submit to AWS Deadline Cloud")
+
+
+@pytest.fixture
+def mock_lux_is_scene_changed():
+    with mock.patch.object(submitter.lux, "isSceneChanged") as is_scene_changed_mock:
+        yield is_scene_changed_mock
+
+
+@pytest.fixture
+def mock_lux_get_input_dialog():
+    with mock.patch.object(submitter.lux, "getInputDialog") as get_input_dialog_mock:
+        yield get_input_dialog_mock
+
+
+@pytest.fixture
+def mock_lux_save_file():
+    with mock.patch.object(submitter.lux, "saveFile") as save_file_mock:
+        yield save_file_mock
+
+
+@pytest.fixture
+def mock_lux_save_package():
+    with mock.patch.object(submitter.lux, "savePackage") as save_package_mock:
+        yield save_package_mock
+
+
+@pytest.fixture
+def mock_lux_is_paused():
+    with mock.patch.object(submitter.lux, "isPaused") as is_paused_mock:
+        yield is_paused_mock
+
+
+@pytest.fixture
+def mock_lux_pause():
+    with mock.patch.object(submitter.lux, "pause") as pause_mock:
+        yield pause_mock
+
+
+@pytest.fixture
+def mock_lux_unpause():
+    with mock.patch.object(submitter.lux, "unpause") as unpause_mock:
+        yield unpause_mock
 
 
 def test_construct_job_template():
@@ -245,48 +290,45 @@ def test_settings_apply_submitter_settings():
     assert sorted(settings.referenced_paths) == ["test_ref_path_2"]
 
 
-def test_unsaved_changes_prompt():
-    local_mock_lux = mock.Mock()
-    local_mock_lux.isSceneChanged.return_value = True
-
-    local_mock_lux.getInputDialog.return_value = None  # emulate clicking Cancel
+def test_unsaved_changes_prompt(
+    mock_lux_is_scene_changed, mock_lux_get_input_dialog, mock_lux_save_file
+):
+    mock_lux_is_scene_changed.return_value = True
+    mock_lux_get_input_dialog.return_value = None  # emulate clicking Cancel
     with pytest.raises(Exception):
-        submitter.main(local_mock_lux)
-    local_mock_lux.saveFile.assert_not_called()
+        submitter.main()
+    mock_lux_save_file.assert_not_called()
 
-    local_mock_lux.getInputDialog.return_value = {}  # emulate clicking Ok
+    mock_lux_get_input_dialog.return_value = {}  # emulate clicking Ok
     # Raise an exception so the main() handler exits after the file save operation is called.
     # We want to verify that the saveFile call is made, but don't want to run the rest of the
     # submitter.
-    local_mock_lux.saveFile.side_effect = Exception()
+    mock_lux_save_file.side_effect = Exception()
     with pytest.raises(Exception):
-        submitter.main(local_mock_lux)
-    local_mock_lux.saveFile.assert_called()
+        submitter.main()
+    mock_lux_save_file.assert_called()
 
 
-def test_auto_pause_resume():
-    local_mock_lux = mock.Mock()
-    local_mock_lux.isPaused = mock.Mock()
-    local_mock_lux.pause = mock.Mock()
-    local_mock_lux.unpause = mock.Mock()
-
+def test_auto_pause_resume(
+    mock_lux_is_paused, mock_lux_pause, mock_lux_unpause, mock_lux_is_scene_changed
+):
     # Throw an exception to cut the submitter short
-    local_mock_lux.isSceneChanged.side_effect = Exception()
+    mock_lux_is_scene_changed.side_effect = Exception()
 
-    local_mock_lux.isPaused.return_value = True
+    mock_lux_is_paused.return_value = True
     with pytest.raises(Exception):
-        submitter.main(local_mock_lux)
-    local_mock_lux.pause.assert_not_called()
-    local_mock_lux.unpause.assert_not_called()
+        submitter.main()
+    mock_lux_pause.assert_not_called()
+    mock_lux_unpause.assert_not_called()
 
-    local_mock_lux.isPaused.return_value = False
+    mock_lux_is_paused.return_value = False
     with pytest.raises(Exception):
-        submitter.main(local_mock_lux)
-    local_mock_lux.pause.assert_called()
-    local_mock_lux.unpause.assert_called()
+        submitter.main()
+    mock_lux_pause.assert_called()
+    mock_lux_unpause.assert_called()
 
 
-def test_save_ksp_bundle():
+def test_save_ksp_bundle(mock_lux_save_package):
     dir = os.path.normpath("/testdir/test")
     bundle_name = "test_bundle.ksp"
     expected_bundle_path = os.path.normpath(f"{dir}/{bundle_name}")
@@ -294,7 +336,7 @@ def test_save_ksp_bundle():
     output = submitter.save_ksp_bundle(dir, bundle_name)
 
     assert output == expected_bundle_path
-    mock_lux.lux_module.savePackage.assert_called_once_with(path=expected_bundle_path)
+    mock_lux_save_package.assert_called_once_with(path=expected_bundle_path)
 
 
 def test_get_ksp_bundle_files():

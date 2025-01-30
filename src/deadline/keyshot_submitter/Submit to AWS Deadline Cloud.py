@@ -3,12 +3,12 @@
 # Submit to AWS Deadline Cloud
 
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+import glob
 import json
 import os
 import platform
 import subprocess
 import tempfile
-import glob
 from dataclasses import dataclass
 from typing import Any, Optional, Tuple
 
@@ -455,20 +455,20 @@ def get_ksp_bundle_files(directory: str) -> Tuple[str, list[str]]:
     return bip_file, input_filenames
 
 
-def main(lux):
+def main():
     if lux.isPaused():
         # If rendering is already paused, run the function normally
-        main_inner(lux)
+        main_inner()
     else:
         # If render is not already paused, pause while running then resume
         try:
             lux.pause()
-            main_inner(lux)
+            main_inner()
         finally:
             lux.unpause()
 
 
-def main_inner(lux):
+def main_inner():
     if lux.isSceneChanged():
         result = lux.getInputDialog(
             title="Unsaved changes",
@@ -558,4 +558,4 @@ def main_inner(lux):
 
 
 if __name__ == "__main__":
-    main(lux)
+    main()
