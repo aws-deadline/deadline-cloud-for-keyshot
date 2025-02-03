@@ -1,3 +1,11 @@
+## 0.3.1 (2025-02-03)
+
+
+
+### Bug Fixes
+* remove lux module being passed as an arg (#167) ([`8bde155`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/8bde1558766bd29ebf766edc4c119b8f77ac22fd))
+* pause rendering while submitting (#159) ([`36170d7`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/36170d74235a9789827a3959ef9f9a354738d689))
+
 ## 0.3.0 (2025-01-21)
 
 
