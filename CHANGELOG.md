@@ -8,6 +8,10 @@
 
 ## 0.3.0 (2025-01-21)
 
+### BREAKING CHANGES
+* use only Windows workers by default (#145) ([`5a6b635`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/5a6b63551e41be1d964ec30c6cdd3c0cff8c9838))
+
+Linux support for KeyShot on Deadline Cloud is experimental, so KeyShot jobs submitted to Deadline Cloud will default to running only on Windows. To submit to a Linux fleet, you can update the `Submit to AWS Deadline Cloud.py` script to require a `attr.worker.os.family` of `linux` instead of `windows` [here](https://github.com/aws-deadline/deadline-cloud-for-keyshot/blob/f5de91692296e6f4a8a9cb65ef2aedcf9b88c3a2/src/deadline/keyshot_submitter/Submit%20to%20AWS%20Deadline%20Cloud.py#L170).
 
 ### Features
 * **adaptor**: Update KeyShot environment variable to KEYSHOT_EXECUTABLE (#144) ([`ca50175`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/ca50175bace3d2c2ee2d97e653100b81a77d43af))
@@ -15,7 +19,6 @@
 ### Bug Fixes
 * use utf-8 encoding for file reads and writes to fix utf-8 encoding issues on Windows (#150) ([`dc9ec7e`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/dc9ec7e6a3d877b2b51070982f6b21d5078360f3))
 * use keyshot-openjd in submitter (#146) ([`11286d7`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/11286d7b9b187a546607daec42ff2d5257b4036f))
-* use only Windows workers by default (#145) ([`5a6b635`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/5a6b63551e41be1d964ec30c6cdd3c0cff8c9838))
 
 ## 0.2.2 (2024-10-16)
 
