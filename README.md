@@ -15,6 +15,7 @@ AWS Deadline Cloud for KeyShot is a python package that allows users to create [
 [deadline-cloud-submitter]: https://docs.aws.amazon.com/deadline-cloud/latest/userguide/submitter.html
 [deadline-cloud-monitor]: https://docs.aws.amazon.com/deadline-cloud/latest/userguide/monitor-onboarding.html
 [usage-based-licensing]: https://aws.amazon.com/deadline-cloud/features/
+[service-managed-fleets]: https://docs.aws.amazon.com/deadline-cloud/latest/userguide/smf-manage.html
 
 ## Compatibility
 
