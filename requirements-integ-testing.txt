@@ -1,4 +1,2 @@
-pillow == 11.0.*
-numpy == 2.2.*
 PyYAML == 6.*
 openjd-cli == 0.5.*
