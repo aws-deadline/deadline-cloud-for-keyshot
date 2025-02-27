@@ -1,0 +1,14 @@
+{
+    "assetReferences": {
+        "inputs": {
+            "directories": [],
+            "filenames": [
+                "PATH_TO_BE_REPLACED\\deadline-cloud-for-keyshot\\test\\integ\\cube\\actual_bundle\\unpack\\startup.hdr"
+            ]
+        },
+        "outputs": {
+            "directories": []
+        },
+        "referencedPaths": []
+    }
+}

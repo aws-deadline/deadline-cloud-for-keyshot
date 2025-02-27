@@ -309,7 +309,9 @@ def save_sticky_settings(scene_file: str, settings: Settings):
         json.dump(settings.output_sticky_settings(), f, indent=2)
 
 
-def gui_submit(bundle_directory: str) -> Optional[dict[str, Any]]:
+def bundle_submit(bundle_directory: str, show_gui=True) -> Optional[dict[str, Any]]:
+    deadline_bundle_command = "gui-submit" if show_gui else "submit"
+    additional_args = ["--output", "json", "--install-gui"] if show_gui else []
     try:
         if platform.system() == "Darwin" or platform.system() == "Linux":
             # Execute the command using an bash in interactive mode so it loads loads the bash profile to set
@@ -321,7 +323,7 @@ def gui_submit(bundle_directory: str) -> Optional[dict[str, Any]]:
                     shell_executable,
                     "-i",
                     "-c",
-                    f"echo \"START_DEADLINE_OUTPUT\"; deadline bundle gui-submit '{bundle_directory}' --output json --install-gui --submitter-name KeyShot",
+                    f"echo \"START_DEADLINE_OUTPUT\"; deadline bundle {deadline_bundle_command} '{bundle_directory}' {' '.join(additional_args)} --submitter-name KeyShot",
                 ],
                 check=True,
                 capture_output=True,
@@ -334,11 +336,9 @@ def gui_submit(bundle_directory: str) -> Optional[dict[str, Any]]:
                 [
                     "deadline",
                     "bundle",
-                    "gui-submit",
+                    deadline_bundle_command,
                     str(bundle_directory),
-                    "--output",
-                    "json",
-                    "--install-gui",
+                    *additional_args,
                     "--submitter-name",
                     "KeyShot",
                 ],
@@ -357,7 +357,7 @@ def gui_submit(bundle_directory: str) -> Optional[dict[str, Any]]:
         return None
 
 
-def options_dialog() -> dict[str, Any]:
+def options_dialog(show_gui=True) -> dict[str, Any]:
     """
     Builds and displays a dialog within KeyShot to get the submission options
     reuired before the main gui submission window is opened outside of KeyShot.
@@ -368,13 +368,17 @@ def options_dialog() -> dict[str, Any]:
     Returns a dictionary of the selected option values in the format:
         {'SUBMISSION_MODE_KEY': [1, 'only the scene BIP file']}
     """
+    BIP_AND_REFERENCES = "The scene BIP file and all external files references"
+    ONLY_BIP = "Only the scene BIP file"
+    if not show_gui:
+        return {SUBMISSION_MODE_KEY: [0, BIP_AND_REFERENCES]}
     dialog_items = [
         (
             SUBMISSION_MODE_KEY,
             lux.DIALOG_ITEM,
             "What files would you like to attach to the job?",
             0,
-            ["The scene BIP file and all external files references", "Only the scene BIP file"],
+            [BIP_AND_REFERENCES, ONLY_BIP],
         )
     ]
     selections = lux.getInputDialog(
@@ -455,20 +459,33 @@ def get_ksp_bundle_files(directory: str) -> Tuple[str, list[str]]:
     return bip_file, input_filenames
 
 
-def main():
+def main(show_gui=True, export_dir=None):
+    """
+    Args:
+        * show_gui:
+            Show the submission GUI components.
+            If this is False, all submitter settings will use the defaults during submission/export.
+        * export_dir:
+            The bundle will be exported to the specified directory instead of submitted.
+            Only usable when show_gui=False.
+    """
+    if export_dir and show_gui:
+        raise RuntimeError(
+            "The export_dir argument can only be used when the show_gui flag is False."
+        )
     if lux.isPaused():
         # If rendering is already paused, run the function normally
-        main_inner()
+        main_inner(show_gui, export_dir)
     else:
         # If render is not already paused, pause while running then resume
         try:
             lux.pause()
-            main_inner()
+            main_inner(show_gui, export_dir)
         finally:
             lux.unpause()
 
 
-def main_inner():
+def main_inner(show_gui=True, export_dir=None):
     if lux.isSceneChanged():
         result = lux.getInputDialog(
             title="Unsaved changes",
@@ -481,7 +498,7 @@ def main_inner():
         else:
             lux.saveFile()
 
-    dialog_selections = options_dialog()
+    dialog_selections = options_dialog(show_gui)
 
     if not dialog_selections:
         # Dialog was canceled. Raise an exception so Keyshot does not show the script's result status as "Success"
@@ -519,34 +536,13 @@ def main_inner():
     if sticky_settings:
         settings.apply_sticky_settings(sticky_settings)
 
-    with tempfile.TemporaryDirectory() as bundle_temp_dir:
-        # {'submission_mode': [0, 'the scene BIP file and all external files references']}
-        if not dialog_selections[SUBMISSION_MODE_KEY][0]:
-            temp_scene_file, input_filenames = get_ksp_bundle_files(bundle_temp_dir)
-            settings.auto_detected_input_filenames = input_filenames
-            settings.parameter_values.append({"name": "KeyShotFile", "value": temp_scene_file})
-        else:
-            settings.parameter_values.append({"name": "KeyShotFile", "value": scene_file})
-
-        # Add default values for Conda
-        major_version, minor_version = lux.getKeyShotDisplayVersion()
-        settings.parameter_values.append(
-            {
-                "name": "CondaPackages",
-                "value": f"keyshot={major_version}.* keyshot-openjd=0.3.*",
-            }
-        )
-        settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
-
-        job_template = construct_job_template(scene_name)
-        asset_references = construct_asset_references(settings)
-        parameter_values = construct_parameter_values(settings)
-
-        dump_json_to_dir(job_template, bundle_temp_dir, "template.json")
-        dump_json_to_dir(asset_references, bundle_temp_dir, "asset_references.json")
-        dump_json_to_dir(parameter_values, bundle_temp_dir, "parameter_values.json")
-
-        output = gui_submit(bundle_temp_dir)
+    if export_dir:
+        create_bundle(settings, dialog_selections, scene_file, scene_name, export_dir)
+        output: Optional[dict] = {"status": "SUCCEEDED"}
+    else:
+        with tempfile.TemporaryDirectory() as bundle_temp_dir:
+            create_bundle(settings, dialog_selections, scene_file, scene_name, bundle_temp_dir)
+            output = bundle_submit(bundle_temp_dir, show_gui)
 
     if output:
         if output.get("status") == "CANCELED":
@@ -555,6 +551,40 @@ def main_inner():
 
         settings.apply_submitter_settings(output)
         save_sticky_settings(scene_file, settings)
+
+
+def create_bundle(
+    settings: Settings,
+    dialog_selections: dict[str, Any],
+    scene_file: str,
+    scene_name: str,
+    bundle_dir: str,
+) -> None:
+    # {'submission_mode': [0, 'the scene BIP file and all external files references']}
+    if not dialog_selections[SUBMISSION_MODE_KEY][0]:
+        temp_scene_file, input_filenames = get_ksp_bundle_files(bundle_dir)
+        settings.auto_detected_input_filenames = input_filenames
+        settings.parameter_values.append({"name": "KeyShotFile", "value": temp_scene_file})
+    else:
+        settings.parameter_values.append({"name": "KeyShotFile", "value": scene_file})
+
+    # Add default values for Conda
+    major_version, minor_version = lux.getKeyShotDisplayVersion()
+    settings.parameter_values.append(
+        {
+            "name": "CondaPackages",
+            "value": f"keyshot={major_version}.* keyshot-openjd=0.3.*",
+        }
+    )
+    settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
+
+    job_template = construct_job_template(scene_name)
+    asset_references = construct_asset_references(settings)
+    parameter_values = construct_parameter_values(settings)
+
+    dump_json_to_dir(job_template, bundle_dir, "template.json")
+    dump_json_to_dir(asset_references, bundle_dir, "asset_references.json")
+    dump_json_to_dir(parameter_values, bundle_dir, "parameter_values.json")
 
 
 if __name__ == "__main__":

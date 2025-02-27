@@ -106,7 +106,7 @@ The keyshot adaptor is a command-line application (named `keyshot-openjd`) that 
 You will need the `keyshot_headless.exe` executable available in your PATH for the adaptor to be able to run KeyShot.
 
 When developing a change to the KeyShot adaptor we recommend primarily running the adaptor locally on your workstation,
-and running and adding to the unit tests until you are comfortable that your change looks like it is working as you expect.
+and running and adding to the unit and integration tests until you are comfortable that your change looks like it is working as you expect.
 Testing locally like this will allow you to iterate faster on your change than the alternative of testing by
 submitting jobs to Deadline Cloud to run using your modified adaptor. Then, test it out on a real render farm only once
 you think that your change is functioning as you'd like.
@@ -171,6 +171,19 @@ keyshot-openjd daemon run \
 keyshot-openjd daemon stop \
   --connection-file file://connection-info.json
 ```
+### Run Integration Tests
+
+1. Set the environment variable `KEYSHOT_EXECUTABLE` to the location of the `keyshot_headless` application.
+   1. `set KEYSHOT_EXECUTABLE=<keyshot_headless location>` on Windows.
+      1. Default on Windows is:
+         User install: `%USERPROFILE%\AppData\Local\KeyShot Studio\bin\keyshot_headless.exe`
+         System install: `%PROGRAMFILES%\KeyShot\bin\keyshot_headless.exe`
+   1. `export KEYSHOT_EXECUTABLE=<keyshot_headless location>` on Linux and MacOS.
+      1. Default in MacOS user installs: `/Applications/Keyshot.app/Contents/MacOS/bin/keyshot_headless`
+1. Ensure licensing is available on your machine for KeyShot
+1. Download [Python 3.11.9](https://www.python.org/downloads/release/python-3119/) and do a system install of it (C:\Program Files\Python311 on Windows)
+1. Open a `hatch shell` (paths won't resolve proeprly without this)
+1. Run `hatch run integ:test` in the shell
 
 #### Running the Adaptor on a Farm
 
