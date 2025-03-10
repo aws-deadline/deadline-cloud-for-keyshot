@@ -1,2 +1,2 @@
 PyYAML == 6.*
-openjd-cli == 0.5.*
+openjd-cli == 0.6.*
