@@ -1,0 +1,19 @@
+name: "Build Installers"
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        type: string
+
+jobs:
+  BuildInstallers:
+    if: (github.repository == 'aws-deadline/deadline-cloud-for-keyshot')
+    name: Build Installers
+    uses: aws-deadline/.github/.github/workflows/reusable_build_installers.yml@mainline
+    secrets: inherit
+    with:
+      environment: ${{inputs.environment}}
+      tag: ${{inputs.tag}}
+      oses: "['Linux', 'Windows', 'MacOS']"
