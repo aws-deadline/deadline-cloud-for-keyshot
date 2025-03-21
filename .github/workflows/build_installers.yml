@@ -3,9 +3,17 @@ name: "Build Installers"
 on:
   workflow_dispatch:
     inputs:
-      tag:
+      ref_type:
+        required: true
+        type: choice
+        options:
+        - heads
+        - tags
+        default: "tags"
+      ref:
         required: true
         type: string
+        default: "mainline"
 
 jobs:
   BuildInstallers:
@@ -14,6 +22,8 @@ jobs:
     uses: aws-deadline/.github/.github/workflows/reusable_build_installers.yml@mainline
     secrets: inherit
     with:
-      environment: ${{inputs.environment}}
-      tag: ${{inputs.tag}}
+      environment: "mainline"
+      ref_type: ${{inputs.ref_type}}
+      ref: ${{inputs.ref}}
       oses: "['Linux', 'Windows', 'MacOS']"
+      project_name: "deadline-cloud-for-keyshot"
