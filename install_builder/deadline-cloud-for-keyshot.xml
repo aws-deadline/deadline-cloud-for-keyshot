@@ -47,17 +47,6 @@
         </if>
         <if>
             <conditionRuleList>
-                <platformTest type="windows" />
-            </conditionRuleList>
-            <actionList>
-                <setInstallerVariable name="keyshot_deps_platform" value="windows" />
-            </actionList>
-            <elseActionList>
-                <setInstallerVariable name="keyshot_deps_platform" value="osx" />
-            </elseActionList>
-        </if>
-        <if>
-            <conditionRuleList>
                 <compareText>
                     <text>${env(KEYSHOT)}</text>
                     <logic>does_not_equal</logic>
