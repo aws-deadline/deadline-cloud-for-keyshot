@@ -17,7 +17,6 @@ from find_installbuilder import InstallBuilderSelection
 # See "Supported Platforms" table in https://releases.installbuilder.com/installbuilder/docs/installbuilder-userguide.html
 INSTALLER_FILENAMES = {
     "Windows": "DeadlineCloudForKeyShotSubmitter-windows-x64-installer.exe",
-    "Linux": "DeadlineCloudForKeyShotSubmitter-linux-x64-installer.run",
     "MacOS": "DeadlineCloudForKeyShotSubmitter-osx-installer.app",
 }
 EVALUATION_VERSION_STRING = "Built with an evaluation version of InstallBuilder"

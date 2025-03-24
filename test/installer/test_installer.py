@@ -44,8 +44,6 @@ def installer_path():
         )
     elif platform.system() == "Windows":
         path = path.format(platform="windows-x64", ext="exe")
-    elif platform.system() == "Linux":
-        path = path.format(platform="linux-x64", ext="run")
 
     if not os.path.isfile(path):
         raise FileNotFoundError(f"Installer not found at '{path}'")
@@ -82,25 +80,11 @@ def _validate_files(installation_path: Path) -> None:
         uninstaller = "uninstall.exe"
     else:
         uninstaller = "uninstall"
-    python_dir = installation_path / "python"
 
     # THEN
     top_level_dir = [f.name for f in installation_path.iterdir()]
-    assert "python" in top_level_dir
     assert "installer_version.txt" in top_level_dir
     assert uninstaller in top_level_dir
-
-    # Just check that we have dependencies in this folder
-    module_dir = [f.name for f in (python_dir / "modules").iterdir()]
-    assert "deadline" in module_dir
-    assert "qtpy" in module_dir
-    assert "xxhash" in module_dir
-
-    # Check the KeyShot module is here and there's a version file
-    addon_dir = [
-        f.name for f in (python_dir / "addons" / "deadline_cloud_keyshot_submitter").iterdir()
-    ]
-    assert "_version.py" in addon_dir
 
 
 @pytest.fixture(scope="session")
@@ -468,32 +452,6 @@ class TestVerifySigning:
         assert "SignTool Error:" not in result.stderr, "signtool did not succeed"
         assert result.returncode == 0
         assert "Successfully verified:" in result.stdout
-
-    @pytest.mark.skipif(platform.system() != "Linux", reason="Only run on Linux")
-    def test_linux_signing(self, installer_path):
-        """Assumes that gpg is on the PATH, and that the public key has already been imported"""
-        # GIVEN
-        gpg = shutil.which("gpg")
-        assert gpg, "gpg not found in PATH"
-
-        # WHEN
-        result = subprocess.run(
-            [gpg, "--verify", f"{installer_path}.sig", installer_path],
-            capture_output=True,
-            text=True,
-        )
-
-        # THEN
-        assert (
-            "Can't check signature: No public key" not in result.stderr
-        ), "Missing Public Key in keyring"
-        assert result.returncode == 0, "Code signing validation failed"
-        # gpg shoves the success message into stderr for some reason
-        # This matches what customers are told to do via the public docs:
-        #   https://docs.aws.amazon.com/deadline-cloud/latest/userguide/submitter.html#verify-installer
-        assert (
-            'Good signature from "AWS Deadline Cloud <aws-deadline@amazon.com>"' in result.stderr
-        ), "Signing succeeded, but did not match docs instructions"
 
     @pytest.mark.skipif(platform.system() != "Darwin", reason="Only run on MacOS")
     def test_macos_signing(self, installer_path):

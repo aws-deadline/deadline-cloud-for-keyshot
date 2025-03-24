@@ -25,5 +25,5 @@ jobs:
       environment: "mainline"
       ref_type: ${{inputs.ref_type}}
       ref: ${{inputs.ref}}
-      oses: "['Linux', 'Windows', 'MacOS']"
+      oses: "['Windows', 'MacOS']"
       project_name: "deadline-cloud-for-keyshot"
