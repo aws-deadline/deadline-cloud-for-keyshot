@@ -13,7 +13,7 @@
             <platforms>all</platforms>
             <distributionFileList>
                 <distributionFile>
-                    <origin>components/deadline-cloud-for-keyshot/src/deadline/keyshot_submitter/Submit to AWS Deadline Cloud.py</origin>
+                    <origin>../src/deadline/keyshot_submitter/Submit to AWS Deadline Cloud.py</origin>
                 </distributionFile>
             </distributionFileList>
         </folder>
@@ -34,14 +34,16 @@
                 <setInstallerVariable name="component(deadline_cloud_for_keyshot).show" value="0"/>
             </elseActionList>
         </if>
-        <setInstallerVariable name="keyshot_installdir" value="${installdir}\Submitters\KeyShot" />
         <if>
             <conditionRuleList>
-                <platformTest type="windows" />
+                <isTrue value="${individual_install}"/>
             </conditionRuleList>
             <actionList>
-                <setInstallerVariable name="keyshot_deps_platform" value="windows" />
+                <setInstallerVariable name="keyshot_installdir" value="${installdir}" />
             </actionList>
+            <elseActionList>
+                <setInstallerVariable name="keyshot_installdir" value="${installdir}\Submitters\KeyShot" />
+            </elseActionList>
         </if>
         <if>
             <conditionRuleList>

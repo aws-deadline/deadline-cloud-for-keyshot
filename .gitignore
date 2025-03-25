@@ -17,3 +17,5 @@ actual_output/
 *.log
 *.bip
 *.deadline_render_settings.json
+
+DeadlineCloudForKeyShotSubmitter-*
