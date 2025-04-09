@@ -192,5 +192,9 @@ with real jobs, then we recommend using a [customer-managed fleet](https://docs.
 for your testing. We recommend performing this style of test if you have made any modifications that might interact with Deadline Cloud's
 job attachments feature, or that could interact with path mapping in any way.
 
+## User guide
+
+The user guide is generated from the markdown files in `docs/user_guide` and published to GitHub pages. To view the renderd user guide locally, run `hatch run docs:serve` which will open the user guide in your browser.
+
 ## Relevant links
 - [Keyshot 2024 scripting documentation](https://media.keyshot.com/scripting/doc/2024.1/lux.html)

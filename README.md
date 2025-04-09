@@ -6,6 +6,8 @@
 
 AWS Deadline Cloud for KeyShot is a python package that allows users to create [AWS Deadline Cloud][deadline-cloud] jobs from within KeyShot. Using the [Open Job Description (OpenJD) Adaptor Runtime][openjd-adaptor-runtime] this package also provides a command line application that adapts KeyShot's command line interface to support the [OpenJD specification][openjd].
 
+For instructions on installing and using this integration, visit the [user guide](https://aws-deadline.github.io/deadline-cloud-for-keyshot).
+
 [deadline-cloud]: https://docs.aws.amazon.com/deadline-cloud/latest/userguide/what-is-deadline-cloud.html
 [deadline-cloud-client]: https://github.com/aws-deadline/deadline-cloud
 [openjd]: https://github.com/OpenJobDescription/openjd-specifications/wiki

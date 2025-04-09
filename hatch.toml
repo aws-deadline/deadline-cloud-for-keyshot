@@ -52,3 +52,14 @@ version = "semantic-release -v --strict version --print {args}"
 
 [envs.installer.scripts]
 build-installer = "python {root}/scripts/build_installer_cli.py --installer-source-path {root}/installer/DeadlineCloudForKeyShotSubmitter.xml {args:}"
+
+[envs.docs]
+dependencies = [
+  "mkdocs>=1.5.0",
+  "mkdocs-material>=9.4.0",
+]
+
+[envs.docs.scripts]
+build = "mkdocs build"
+serve = "mkdocs serve"
+deploy = "mkdocs gh-deploy --force"
