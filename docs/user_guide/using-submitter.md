@@ -1,58 +1,6 @@
-# AWS Deadline Cloud for KeyShot Studio User Guide
+# Using the Submitter
 
-This guide provides step-by-step instructions for using AWS Deadline Cloud with KeyShot Studio to render your projects faster by distributing rendering tasks across multiple machines.
-
-![Screenshot showing Deadline Cloud's KeyShot submitter with KeyShot Studio running behind it](./images/main-screenshot.png)
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Using the Submitter](#using-the-submitter)
-  - [Preparing Your Scene](#preparing-your-scene)
-  - [Submitting a Job](#submitting-a-job)
-  - [Submission Options](#submission-options)
-  - [Render Settings](#render-settings)
-- [Monitoring Your Jobs](#monitoring-your-jobs)
-- [Getting Help](#getting-help)
-
-## Overview
-
-AWS Deadline Cloud for KeyShot Studio allows you to:
-
-- Submit KeyShot rendering jobs to AWS Deadline Cloud directly from within KeyShot Studio
-- Distribute rendering tasks across multiple machines
-- Monitor job progress and results
-
-## Requirements
-
-Before you begin, make sure you have:
-
-- A Windows or MacOS workstation
-- KeyShot Studio 2023 or 2024
-- [Deadline Cloud monitor](https://docs.aws.amazon.com/deadline-cloud/latest/userguide/monitor-onboarding.html) installed
-- Access to an AWS Deadline Cloud farm with either
-    - a Windows service-managed fleet or
-    - a customer-managed fleet with KeyShot Studio, the KeyShot adapter, and licensing set up
-
-## Installation
-
-
-The KeyShot submitter extension allows you to submit jobs to Deadline Cloud directly from within KeyShot. To install the submitter,
-
-1. Download the [official Deadline Cloud submitter installer](https://docs.aws.amazon.com/deadline-cloud/latest/userguide/submitter.html)
-2. Run the installer and follow the on-screen instructions
-3. Launch KeyShot after installation
-
-> Currently a submitter installer is only availble for Windows. See the [the developer README](../../README.md) for manual install instructions for Mac.
-
-To update the submitter to the latest version, download and run the latest submitter installer.
-
-
-## Using the Submitter
-
-### Preparing Your Scene
+## Preparing Your Scene
 
 Before submitting a job:
 
@@ -60,7 +8,7 @@ Before submitting a job:
 2. Set up your camera angles, materials, and lighting as desired
 3. Configure animation frames if rendering an animation
 
-### Submitting a Job
+## Submitting a Job
 
 1. In KeyShot, on the top toolbar click **Scripting Console**.
 2. In the Scripting Console, navigate to **Scripts** → **Submit to AWS Deadline Cloud**
@@ -68,7 +16,7 @@ Before submitting a job:
 
 ![Accessing the Submitter](./images/scripting-console.png)
 
-### Submission Options
+## Submission Options
 
 When you run the submitter, you'll first see a dialog asking how you want to handle file attachments:
 
@@ -86,7 +34,7 @@ Choose one of the following options:
   - Use this option if your workers already have access to all referenced files
   - Requires shared network storage or another method to access external files
 
-### Render Settings
+## Render Settings
 
 After selecting your submission option, the Deadline Cloud submitter interface will appear:
 
