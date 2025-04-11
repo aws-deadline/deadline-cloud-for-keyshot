@@ -9,7 +9,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
 
-from _project import Dependency, get_dependencies, get_pip_platform, get_project_dict
+from _project import get_project_dict, get_dependencies, get_pip_platform, Dependency
 
 SUPPORTED_PYTHON_VERSIONS = ["3.9", "3.10", "3.11"]
 SUPPORTED_PLATFORMS = ["Windows", "Linux", "Darwin"]
@@ -102,13 +102,15 @@ def _zip_bundle(base_env: Path, zip_path: Path) -> None:
     shutil.make_archive(str(zip_path.with_suffix("")), "zip", str(base_env))
 
 
-def _copy_zip_to_destination(zip_path: Path) -> None:
+def _copy_zip_to_destination(zip_path: Path) -> Path:
     dependency_bundle_dir = Path.cwd() / "dependency_bundle"
     dependency_bundle_dir.mkdir(exist_ok=True)
     zip_destination = dependency_bundle_dir / zip_path.name
     if zip_destination.exists():
         zip_destination.unlink()
     shutil.copy(str(zip_path), str(zip_destination))
+
+    return zip_destination
 
 
 def build_deps_bundle() -> None:

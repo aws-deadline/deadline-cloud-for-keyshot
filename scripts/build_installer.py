@@ -2,16 +2,14 @@
 """Script to create platform-specific Deadline Client installers using InstallBuilder."""
 
 import os
-import platform
 import sys
 import shutil
 import tempfile
-from datetime import datetime
 from typing import Optional
 from pathlib import Path
 
-from common import EvaluationBuildError, run
-from find_installbuilder import InstallBuilderSelection
+from common import EvaluationBuildError, run, get_version_string
+from find_installbuilder import InstallBuilderSelection, get_builder_exe_name
 
 # This is derived from <installerFilename> in installer/DeadlineCloudForKeyShotSubmitter.xml
 # See "Supported Platforms" table in https://releases.installbuilder.com/installbuilder/docs/installbuilder-userguide.html
@@ -48,17 +46,12 @@ def setup_install_builder(
 
     install_builder_path = selection.resolve_install_builder_installation(workdir)
 
-    if platform.system() == "Windows":
-        binary_name = "builder.exe"
-    else:
-        binary_name = "builder"
-
     if (
         not install_builder_path.is_dir()
-        or not (install_builder_path / "bin" / binary_name).is_file()
+        or not (install_builder_path / "bin" / get_builder_exe_name()).is_file()
     ):
         raise FileNotFoundError(
-            f"InstallBuilder path '{install_builder_path}' must be a directory containing 'bin/{binary_name}'."
+            f"InstallBuilder path '{install_builder_path}' must be a directory containing 'bin/{get_builder_exe_name()}'."
         )
 
     if license_file_path is not None:
@@ -73,6 +66,7 @@ def build_installer(
     install_builder_location: Path,
     installer_platform: str,
     dev: bool,
+    override_installer_version: Optional[str],
 ) -> Path:
     """
     Actually build the installer
@@ -98,9 +92,11 @@ def build_installer(
 
     install_builder_cli = install_builder_location / "bin" / "builder"
     out_dir = workdir / "out"
-    installer_version = os.getenv("INSTALLER_VERSION") if not dev else "00000000"
-    if installer_version is None:
-        raise ValueError("INSTALLER_VERSION environment variable must be set.")
+    root = Path(__file__).resolve().parent.parent
+    if override_installer_version is not None:
+        installer_version = override_installer_version
+    else:
+        installer_version = get_version_string(cwd=root)
     output = run(
         [
             install_builder_cli,
@@ -109,7 +105,7 @@ def build_installer(
             installbuilder_platform,
             "--setvars",
             f"project.outputDirectory={out_dir}",
-            f"project.version={installer_version[:8]}-{datetime.today().date()}",
+            f"project.version={installer_version}",
         ]
     )
     sys.stdout.write(
@@ -137,9 +133,9 @@ def main(
     install_builder_s3_bucket: Optional[str],
     install_builder_s3_key: Optional[str],
     output_dir: Optional[Path],
-    cleanup: bool,
     installer_platform: str,
     installer_source_path: Path,
+    override_installer_version: Optional[str],
 ) -> None:
     with tempfile.TemporaryDirectory() as wd:
         workdir = Path(wd)
@@ -159,6 +155,7 @@ def main(
             install_builder_location=installbuilder_path,
             dev=dev,
             installer_platform=installer_platform,
+            override_installer_version=override_installer_version,
         )
 
         installer_filename = INSTALLER_FILENAMES[installer_platform]
@@ -176,7 +173,7 @@ def main(
                 f"Found:\n\t{os.linesep.join([str(i) for i in installer_dir.iterdir()])}"
             )
 
-        output_path = installer_filename
+        output_path = Path(installer_filename)
         if output_dir:
             output_dir.mkdir(exist_ok=True)
             output_path = output_dir / output_path
