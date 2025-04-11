@@ -54,7 +54,7 @@ def installer_path():
     yield Path(path).absolute()
 
 
-def _run_installer(installer_path, install_scope, installation_path) -> Path:
+def _run_installer(installer_path, scripts_path, install_scope, installation_path) -> Path:
     # use a path that does not exist
     installation_path = installation_path / "dne"
     args = [
@@ -67,13 +67,15 @@ def _run_installer(installer_path, install_scope, installation_path) -> Path:
         installation_path,
         "--enable-components",
         "deadline_cloud_for_keyshot",
+        "--keyshot-scripts-directory",
+        scripts_path,
     ]
     subprocess.run(args, check=True)
 
     return Path(installation_path)
 
 
-def _validate_files(installation_path: Path) -> None:
+def _validate_files(installation_path: Path, scripts_path: Path) -> None:
     if platform.system() == "Darwin":
         uninstaller = "uninstall.app"
     elif platform.system() == "Windows":
@@ -82,35 +84,55 @@ def _validate_files(installation_path: Path) -> None:
         uninstaller = "uninstall"
 
     # THEN
-    top_level_dir = [f.name for f in installation_path.iterdir()]
-    assert "installer_version.txt" in top_level_dir
-    assert uninstaller in top_level_dir
+    install_files = [f.name for f in installation_path.iterdir()]
+    assert "installer_version.txt" in install_files
+    assert uninstaller in install_files
+
+    scripts_files = [f.name for f in scripts_path.iterdir()]
+    assert "Submit to AWS Deadline Cloud.py" in scripts_files
 
 
 @pytest.fixture(scope="session")
-def user_installation(installer_path, tmp_path_factory):
-    """Used for tests that just want to assert some facts around the install but do not modify"""
-    tmp_path = tmp_path_factory.mktemp("install")
-    yield _run_installer(installer_path, "user", tmp_path)
+def user_installation_scripts_path(tmp_path_factory):
+    """Used for tests that just want to assert some facts around the scripts path but do not modify"""
+    yield tmp_path_factory.mktemp("UserScripts")
 
 
 @pytest.fixture(scope="session")
-def system_installation(installer_path, tmp_path_factory):
+def user_installation(installer_path, user_installation_scripts_path, tmp_path_factory):
     """Used for tests that just want to assert some facts around the install but do not modify"""
     tmp_path = tmp_path_factory.mktemp("install")
-    yield _run_installer(installer_path, "system", tmp_path)
+    yield _run_installer(installer_path, user_installation_scripts_path, "user", tmp_path)
+
+
+@pytest.fixture(scope="session")
+def system_installation_scripts_path(tmp_path_factory):
+    """Used for tests that just want to assert some facts around the scripts path but do not modify"""
+    yield tmp_path_factory.mktemp("SystemScripts")
+
+
+@pytest.fixture(scope="session")
+def system_installation(installer_path, system_installation_scripts_path, tmp_path_factory):
+    """Used for tests that just want to assert some facts around the install but do not modify"""
+    tmp_path = tmp_path_factory.mktemp("install")
+    yield _run_installer(installer_path, system_installation_scripts_path, "system", tmp_path)
 
 
 @pytest.fixture(scope="function")
-def per_test_user_installation(installer_path, tmp_path):
-    """Used for tests that modify the installation"""
-    yield _run_installer(installer_path, "user", tmp_path)
+def per_test_scripts_path(tmp_path_factory):
+    yield tmp_path_factory.mktemp("Scripts")
 
 
 @pytest.fixture(scope="function")
-def per_test_system_installation(installer_path, tmp_path):
+def per_test_user_installation(installer_path, per_test_scripts_path, tmp_path):
     """Used for tests that modify the installation"""
-    yield _run_installer(installer_path, "system", tmp_path)
+    yield _run_installer(installer_path, per_test_scripts_path, "user", tmp_path)
+
+
+@pytest.fixture(scope="function")
+def per_test_system_installation(installer_path, per_test_scripts_path, tmp_path):
+    """Used for tests that modify the installation"""
+    yield _run_installer(installer_path, per_test_scripts_path, "system", tmp_path)
 
 
 @pytest.fixture(scope="function")
@@ -390,9 +412,9 @@ class TestWindows:
 
 
 class TestUserInstall:
-    def test_install(self, user_installation: Path):
+    def test_install(self, user_installation: Path, user_installation_scripts_path: Path):
         # GIVEN / WHEN / THEN
-        _validate_files(user_installation)
+        _validate_files(user_installation, user_installation_scripts_path)
 
     def test_uninstall(self, per_test_user_installation: Path, uninstaller_path: Path):
         # GIVEN / WHEN
@@ -415,9 +437,9 @@ class TestUserInstall:
 
 @pytest.mark.skipif(not _is_admin(), reason="Tests requires admin privileges")
 class TestSystemInstall:
-    def test_install(self, system_installation: Path):
+    def test_install(self, system_installation: Path, system_installation_scripts_dir: Path):
         # GIVEN / WHEN / THEN
-        _validate_files(system_installation)
+        _validate_files(system_installation, system_installation_scripts_dir)
 
     def test_uninstall(self, per_test_system_installation: Path, uninstaller_path: Path):
         # GIVEN / WHEN
