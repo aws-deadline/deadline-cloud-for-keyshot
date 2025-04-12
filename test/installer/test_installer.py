@@ -437,9 +437,9 @@ class TestUserInstall:
 
 @pytest.mark.skipif(not _is_admin(), reason="Tests requires admin privileges")
 class TestSystemInstall:
-    def test_install(self, system_installation: Path, system_installation_scripts_dir: Path):
+    def test_install(self, system_installation: Path, system_installation_scripts_path: Path):
         # GIVEN / WHEN / THEN
-        _validate_files(system_installation, system_installation_scripts_dir)
+        _validate_files(system_installation, system_installation_scripts_path)
 
     def test_uninstall(self, per_test_system_installation: Path, uninstaller_path: Path):
         # GIVEN / WHEN
