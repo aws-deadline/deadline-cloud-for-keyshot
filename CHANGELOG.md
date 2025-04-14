@@ -1,6 +1,9 @@
+## 0.3.2 (2025-04-14)
+
+### Features
+* add individual installer support, including macOS (#190) ([`958cb50`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/958cb50112604dd387b5ceb47ed106787545be3d))
+
 ## 0.3.1 (2025-02-03)
-
-
 
 ### Bug Fixes
 * remove lux module being passed as an arg (#167) ([`8bde155`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/8bde1558766bd29ebf766edc4c119b8f77ac22fd))
@@ -22,16 +25,12 @@ Linux support for KeyShot on Deadline Cloud is experimental, so KeyShot jobs sub
 
 ## 0.2.2 (2024-10-16)
 
-
-
 ### Bug Fixes
 * downgrade python-semantic-release to fix changelog (#126) ([`1cd8331`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/1cd8331d92abbfc037e4f89dc294d10cbf4639cf))
 * update installer to locate KeyShot scripts directory in more cases (#123) ([`70c1d52`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/70c1d52833603d7f932897ad2c7484a2f2e3e8ed))
 * use consistent version strings for Keyshot (#121) ([`7a60bcb`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/7a60bcbe604272ea81cf7cc071789db3b75dad4d))
 
 ## 0.2.1 (2024-09-05)
-
-
 
 ### Bug Fixes
 * auto-install GUI dependencies (#114) ([`cb9f28f`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/cb9f28f0498db15bda6e5ab9570df50987d56444))
@@ -53,21 +52,15 @@ Linux support for KeyShot on Deadline Cloud is experimental, so KeyShot jobs sub
 
 ## 0.1.3 (2024-06-19)
 
-
 ### Features
 * add KeyShot 2024 support (#91) ([`d6d2dfa`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/d6d2dfa6b2758b0acfd8f4c13a5d32bde2a2ca0a))
 
-
 ## 0.1.2 (2024-05-22)
-
 
 ### Features
 * swap to qtpy and support pyside6 (#78) ([`9fc9bf7`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/9fc9bf79f3e5091dd40e7fc0e2d620cc8b46a8e2))
 
-
 ## 0.1.1 (2024-05-01)
-
-
 
 ### Bug Fixes
 * update missed renames (#63) ([`d5d58b7`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/d5d58b739ee43d3a778ac3e774bfa0975f42bf90))
@@ -78,14 +71,10 @@ Linux support for KeyShot on Deadline Cloud is experimental, so KeyShot jobs sub
 * public release (#53) ([`91378c3`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/91378c39e58f6eeadc67900a430c802601852b74))
 * update licensing configuration and instructions (#52) ([`f44650e`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/f44650e2299864a9dd3dfab28efb2dff89c6d7df))
 
-
-
 ## 0.0.6 (2024-03-26)
-
 
 ### Features
 * Adds telemetry events to submitter and adaptor (#40) ([`00ff0cd`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/00ff0cd670cef61519851d4c4d91d56b64739585))
-
 
 ## 0.0.5 (2024-03-15)
 
@@ -93,7 +82,6 @@ Linux support for KeyShot on Deadline Cloud is experimental, so KeyShot jobs sub
 * update deps deadline-cloud 0.40 (#35) ([`cebd1c4`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/cebd1c4fdf9633aa0691b517f6b4092264943f69))
 
 ## 0.0.4 (2024-03-08)
-
 
 ### Features
 * add conda packages to keyshot submitter (#27) ([`f538c1a`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/f538c1a7765a56955cfb6e57bec35b0551ae9c53))
@@ -103,15 +91,10 @@ Linux support for KeyShot on Deadline Cloud is experimental, so KeyShot jobs sub
 
 ## 0.0.3 (2024-02-22)
 
-
-
 ### Bug Fixes
 * update openjd-runtime to handle signals (#20) ([`5f74e9b`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/5f74e9ba7b1dfe17f571f396522eeecf1e967e47))
 
 ## 0.0.2 (2024-02-21)
-
-
-
 
 # CHANGELOG
 ## v0.0.1 (2024-02-21)
@@ -122,4 +105,3 @@ Linux support for KeyShot on Deadline Cloud is experimental, so KeyShot jobs sub
 ### Fix
 * fix: layers and video output setting (#6) ([`68fa5ff`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/68fa5ffe5eccfa0db9a0984992f5c5a3c0095741))
 * fix: frame and render output settings (#3)
-
