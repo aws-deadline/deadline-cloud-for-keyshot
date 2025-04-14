@@ -218,7 +218,7 @@ def construct_job_template(filename: str) -> dict:
                                 },
                             },
                         },
-                    }
+                    },
                 ],
                 "script": {
                     "embeddedFiles": [

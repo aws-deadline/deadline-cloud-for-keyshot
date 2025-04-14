@@ -181,9 +181,8 @@ keyshot-openjd daemon stop \
    1. `export KEYSHOT_EXECUTABLE=<keyshot_headless location>` on Linux and MacOS.
       1. Default in MacOS user installs: `/Applications/Keyshot.app/Contents/MacOS/bin/keyshot_headless`
 1. Ensure licensing is available on your machine for KeyShot
-1. Download [Python 3.11.9](https://www.python.org/downloads/release/python-3119/) and do a system install of it (C:\Program Files\Python311 on Windows)
-1. Open a `hatch shell` (paths won't resolve proeprly without this)
-1. Run `hatch run integ:test` in the shell
+1. Download [Python 3.11.9](https://www.python.org/downloads/release/python-3119/) and do a system install of it (C:\Program Files\Python311 on Windows). This is required because the KeyShot Python is missing some standard libraries used by the adaptor but will automatically pull them from the installed Python 3.11.
+1. Run `hatch run integ:test`
 
 #### Running the Adaptor on a Farm
 

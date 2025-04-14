@@ -67,7 +67,7 @@ def main():
         raise OSError(
             "KeyShotClient cannot connect to the Adaptor because the server path defined by "
             "the environment variable KEYSHOT_ADAPTOR_SERVER_PATH does not exist. Got: "
-            f"{os.environ['KEYSHOT_ADAPTOR_SERVER_PATH']}"
+            f"{server_path}"
         )
 
     client = KeyShotClient(server_path)
