@@ -214,6 +214,9 @@
     </preInstallationActionList>
     <postInstallationActionList>
         <setInstallerVariable name="installscope" value="${installscope}" persist="1"/>
+        <createDirectory>
+            <path>${installdir}</path>
+        </createDirectory>
         <writeFile>
             <progressText>Writing version file</progressText>
             <path>${installdir}/installer_version.txt</path>
