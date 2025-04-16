@@ -71,7 +71,40 @@
                         <setInstallerVariable name="keyshot_scripts_directory" value="${env(KEYSHOT12)}\Scripts"/>
                     </actionList>
                     <elseActionList>
-                        <setInstallerVariable name="keyshot_scripts_directory" value=""/>
+                        <if>
+                            <conditionRuleList>
+                                <platformTest type="osx" />
+                            </conditionRuleList>
+                            <actionList>
+                                <if>
+                                    <conditionRuleList>
+                                        <!-- KeyShot 2024.2+ -->
+                                        <fileExists path="/Library/Application Support/KeyShot Studio/Scripts"/>
+                                    </conditionRuleList>
+                                    <actionList>
+                                        <setInstallerVariable name="keyshot_scripts_directory" value="/Library/Application Support/KeyShot Studio/Scripts"/>
+                                    </actionList>
+                                    <elseActionList>
+                                    <if>
+                                        <conditionRuleList>
+                                            <!-- KeyShot 2024.1 -->
+                                            <fileExists path="/Library/Application Support/KeyShot/Scripts"/>
+                                        </conditionRuleList>
+                                        <actionList>
+                                            <setInstallerVariable name="keyshot_scripts_directory" value="/Library/Application Support/KeyShot/Scripts"/>
+                                        </actionList>
+                                        <elseActionList>
+                                            <!-- KeyShot 2023 -->
+                                            <setInstallerVariable name="keyshot_scripts_directory" value="/Library/Application Support/KeyShot 12/Scripts"/>
+                                        </elseActionList>
+                                    </if>
+                                    </elseActionList>
+                                </if>
+                            </actionList>
+                            <elseActionList>
+                                <setInstallerVariable name="keyshot_scripts_directory" value=""/>
+                            </elseActionList>
+                        </if>
                     </elseActionList>
                 </if>
             </elseActionList>
@@ -94,7 +127,12 @@
         <directoryParameter>
             <name>keyshot_scripts_directory</name>
             <description>KeyShot Scripts Directory</description>
-            <explanation>Path to scripts directory in the KeyShot resources directory. For easiest installation, KeyShot should be installed before installing Deadline Cloud for KeyShot.</explanation>
+            <explanation>
+Path to scripts directory in the KeyShot resources directory. For easiest installation, KeyShot should be installed before installing Deadline Cloud for KeyShot.
+Examples:
+Windows: C:\Users\Username\Documents\KeyShot Studio\Scripts
+Mac: /Library/Application Support/KeyShot Studio/Scripts
+            </explanation>
             <allowEmptyValue>0</allowEmptyValue>
             <ask>yes</ask>
             <cliOptionName>keyshot-scripts-directory</cliOptionName>
