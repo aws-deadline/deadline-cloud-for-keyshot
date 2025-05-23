@@ -110,7 +110,8 @@
                                 ],
                                 "cancelation": {
                                     "mode": "NOTIFY_THEN_TERMINATE"
-                                }
+                                },
+                                "timeout": 390
                             },
                             "onExit": {
                                 "command": "keyshot-openjd",
@@ -122,7 +123,8 @@
                                 ],
                                 "cancelation": {
                                     "mode": "NOTIFY_THEN_TERMINATE"
-                                }
+                                },
+                                "timeout": 120
                             }
                         }
                     }
