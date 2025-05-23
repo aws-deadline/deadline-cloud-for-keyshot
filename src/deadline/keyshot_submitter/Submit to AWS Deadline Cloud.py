@@ -19,6 +19,14 @@ SUBMISSION_MODE_KEY = "submission_mode"
 # Unique ID required to allow KeyShot to save selections for a dialog
 DEADLINE_CLOUD_DIALOG_ID = "e309ce79-3ee8-446a-8308-10d16dfcbb42"
 
+_SERVER_START_TIMEOUT_SECONDS = 30
+_SERVER_END_TIMEOUT_SECONDS = 30
+_KEYSHOT_START_TIMEOUT_SECONDS = 300
+_KEYSHOT_END_TIMEOUT_SECONDS = 30
+
+KEYSHOT_ENVIRON_ENTER_TIMEOUT = _SERVER_START_TIMEOUT_SECONDS + _KEYSHOT_START_TIMEOUT_SECONDS + 60
+KEYSHOT_ENVIRON_EXIT_TIMEOUT = _SERVER_END_TIMEOUT_SECONDS + _KEYSHOT_END_TIMEOUT_SECONDS + 60
+
 
 @dataclass
 class Settings:
@@ -205,6 +213,7 @@ def construct_job_template(filename: str) -> dict:
                                         "file://{{Env.File.initData}}",
                                     ],
                                     "cancelation": {"mode": "NOTIFY_THEN_TERMINATE"},
+                                    "timeout": KEYSHOT_ENVIRON_ENTER_TIMEOUT,
                                 },
                                 "onExit": {
                                     "command": "keyshot-openjd",
@@ -215,6 +224,7 @@ def construct_job_template(filename: str) -> dict:
                                         "{{ Session.WorkingDirectory }}/connection.json",
                                     ],
                                     "cancelation": {"mode": "NOTIFY_THEN_TERMINATE"},
+                                    "timeout": KEYSHOT_ENVIRON_EXIT_TIMEOUT,
                                 },
                             },
                         },
