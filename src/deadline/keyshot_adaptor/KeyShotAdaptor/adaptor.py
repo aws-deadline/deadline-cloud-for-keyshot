@@ -75,6 +75,10 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
     _expected_outputs: int = 1  # Total number of renders to perform.
     _produced_outputs: int = 0  # Counter for tracking number of complete renders.
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        print(f"Deadline Cloud for KeyShot adaptor version: {adaptor_version}")
+
     @property
     def integration_data_interface_version(self) -> SemanticVersion:
         return SemanticVersion(major=0, minor=1)
