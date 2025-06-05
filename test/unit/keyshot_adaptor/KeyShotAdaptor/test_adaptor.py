@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from deadline.keyshot_adaptor.KeyShotAdaptor.adaptor import KeyShotAdaptor
+from deadline.keyshot_adaptor._version import version as adaptor_version
 
 # if this changes, the `integration_data_interface_version` should also be bumped
 CURRENT_INIT_DATA_SCHEMA = {
@@ -84,3 +85,13 @@ def test_if_init_data_and_run_data_schema_are_changed_schema_version_is_bumped(i
     # also be bumped
     assert semantic_version.major == 0
     assert semantic_version.minor == 1
+
+
+def test_adaptor_prints_version_on_init(init_data, capfd):
+    """
+    Test that the adaptor prints its version during initialization
+    """
+    KeyShotAdaptor(init_data)
+    captured = capfd.readouterr()
+    expected_output = f"Deadline Cloud for KeyShot adaptor version: {adaptor_version}"
+    assert expected_output in captured.out
