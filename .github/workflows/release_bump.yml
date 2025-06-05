@@ -22,7 +22,7 @@ jobs:
     uses: ./.github/workflows/code_quality.yml
     with:
       branch: mainline
-
+      
   Bump:
     name: Version Bump
     needs: UnitTests
