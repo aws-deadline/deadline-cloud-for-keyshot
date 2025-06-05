@@ -373,3 +373,13 @@ def test_get_ksp_bundle_files():
         assert len(input_filenames) == 1
         assert input_filenames[0] == os.path.join(temp_dir, "unpack", TEST_ASSET_FILE)
         mock_save_ksp_bundle.assert_called_once_with(os.path.join(temp_dir, "ksp"), mock.ANY)
+
+
+def test_construct_job_template_timeout_values():
+
+    template = submitter.construct_job_template("test_scene.bip")
+
+    actions = template["steps"][0]["stepEnvironments"][0]["script"]["actions"]
+
+    assert actions["onEnter"]["timeout"] == submitter.KEYSHOT_ENVIRON_ENTER_TIMEOUT
+    assert actions["onExit"]["timeout"] == submitter.KEYSHOT_ENVIRON_EXIT_TIMEOUT
