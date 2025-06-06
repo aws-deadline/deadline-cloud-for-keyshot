@@ -46,6 +46,7 @@ class KeyShotClient(ClientInterface):
         super().__init__(server_path=server_path)
         major_version, minor_version = lux.getKeyShotDisplayVersion()
         print(f"KeyShotClient: KeyShot Version {major_version}.{minor_version}")
+        lux.pause()
         self.actions.update(KeyShotHandler().action_dict)
 
     def close(self, args: Optional[dict] = None) -> None:
