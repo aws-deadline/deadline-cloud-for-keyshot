@@ -20,5 +20,5 @@ def test_keyshot_client_creation():
 
 def test_keyshot_client_pauses_viewport_rendering():
     with mock.patch.object(lux, "pause") as pause_mock:
-        KeyShotClient("127.0.01")
-        pause_mock.assert_called_once()
+        KeyShotClient("127.0.0.1")
+    pause_mock.assert_called_once()
