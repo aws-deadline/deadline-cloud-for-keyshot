@@ -8,6 +8,7 @@ from difflib import unified_diff
 from pathlib import Path
 
 import yaml
+from .image_comparison import assert_all_images_close
 
 DIR_NAME_FOR_EXPECTED_BUNDLE = "expected_bundle"
 DIR_NAME_FOR_ACTUAL_BUNDLE = "actual_bundle"
@@ -62,6 +63,21 @@ def run_keyshot_adaptor_test(
     with open(template_path) as f:
         template = yaml.safe_load(f)
 
+        for step in template["steps"]:
+            for env in step.get("stepEnvironments", []):
+                for embedded_file in env.get("script", {}).get("embeddedFiles", []):
+                    if embedded_file.get("name") == "initData":
+                        data_str = embedded_file["data"]
+                        data = yaml.safe_load(data_str)
+                        if (
+                            "render_options" in data
+                            and "progressive_max_samples" in data["render_options"]
+                        ):
+                            data["render_options"]["progressive_max_samples"] = 1000
+                        embedded_file["data"] = yaml.dump(data, sort_keys=False)
+    with open(template_path, "w") as f:
+        json.dump(template, f, indent=4)
+
     job_params = {}
     with open(bundle_location / "parameter_values.json") as f:
         for param in json.loads(f.read())["parameterValues"]:
@@ -103,12 +119,10 @@ def run_keyshot_adaptor_test(
         )
         assert output.returncode == 0
 
-    # TODO: currently, the test output is grainy as it runs with only 16 samples,
-    # causing the test to fail. We should investigate if this can be improved
-    # assert_all_images_close(
-    #     expected_image_directory=test_scene_location / DIR_NAME_FOR_EXPECTED_OUTPUT_IMAGES,
-    #     actual_image_directory=test_scene_location / DIR_NAME_FOR_ACTUAL_OUTPUT_IMAGES,
-    # )
+    assert_all_images_close(
+        expected_image_directory=test_scene_location / DIR_NAME_FOR_EXPECTED_OUTPUT_IMAGES,
+        actual_image_directory=test_scene_location / DIR_NAME_FOR_ACTUAL_OUTPUT_IMAGES,
+    )
     assert os.path.isfile(output_path / "scene.0.png")
 
 

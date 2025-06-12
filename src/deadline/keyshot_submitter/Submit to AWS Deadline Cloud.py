@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from typing import Any, Optional, Tuple
 
 import lux
+import yaml
 
 RENDER_SUBMITTER_SETTINGS_FILE_EXT = ".deadline_render_settings.json"
 SUBMISSION_MODE_KEY = "submission_mode"
@@ -109,6 +110,9 @@ def construct_job_template(filename: str) -> dict:
     Constructs and returns a dict containing a valid job template for the KeyShot job.
     The return value is safe to convert/dump to JSON or YAML.
     """
+
+    render_options_dict = lux.getRenderOptions().getDict()
+
     return {
         "specificationVersion": "jobtemplate-2023-09",
         "name": filename,
@@ -196,6 +200,7 @@ def construct_job_template(filename: str) -> dict:
                                         "scene_file: '{{Param.KeyShotFile}}'\n"
                                         "output_file_path: '{{Param.OutputFilePath}}'\n"
                                         "output_format: 'RENDER_OUTPUT_{{Param.OutputFormat}}'\n"
+                                        f"render_options: {yaml.dump(render_options_dict, default_flow_style=True, sort_keys=False).strip()}\n"
                                     ),
                                 }
                             ],
