@@ -405,12 +405,11 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
             if name in run_data:
                 self._action_queue.enqueue_action(Action(name, {name: run_data[name]}))
 
-        self._action_queue.enqueue_action(
-            Action(
-                "start_render",
-                {"frame": run_data["frame"], "render_options": self.init_data["render_options"]},
-            )
-        )
+        action_data = {"frame": run_data["frame"]}
+        if "render_options" in self.init_data:
+            action_data["render_options"] = self.init_data["render_options"]
+
+        self._action_queue.enqueue_action(Action("start_render", action_data))
 
         while self._keyshot_is_rendering and not self._has_exception:
             time.sleep(0.1)  # busy wait so that on_cleanup is not called

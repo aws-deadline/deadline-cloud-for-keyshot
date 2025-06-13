@@ -7,7 +7,6 @@ import subprocess
 from difflib import unified_diff
 from pathlib import Path
 
-import yaml
 from .image_comparison import assert_all_images_close
 
 DIR_NAME_FOR_EXPECTED_BUNDLE = "expected_bundle"
@@ -60,23 +59,14 @@ def run_keyshot_adaptor_test(
     template_path = bundle_location / "template.json"
     output_path = test_scene_location / DIR_NAME_FOR_ACTUAL_OUTPUT_IMAGES
 
-    with open(template_path) as f:
-        template = yaml.safe_load(f)
+    with open(template_path, "r") as f:
+        content = f.read().replace("progressive_max_samples: 0", "progressive_max_samples: 1000")
 
-        for step in template["steps"]:
-            for env in step.get("stepEnvironments", []):
-                for embedded_file in env.get("script", {}).get("embeddedFiles", []):
-                    if embedded_file.get("name") == "initData":
-                        data_str = embedded_file["data"]
-                        data = yaml.safe_load(data_str)
-                        if (
-                            "render_options" in data
-                            and "progressive_max_samples" in data["render_options"]
-                        ):
-                            data["render_options"]["progressive_max_samples"] = 1000
-                        embedded_file["data"] = yaml.dump(data, sort_keys=False)
     with open(template_path, "w") as f:
-        json.dump(template, f, indent=4)
+        f.write(content)
+
+    with open(template_path, "r") as f:
+        template = json.loads(f.read())
 
     job_params = {}
     with open(bundle_location / "parameter_values.json") as f:
