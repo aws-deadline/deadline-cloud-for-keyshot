@@ -110,7 +110,8 @@ def construct_job_template(filename: str) -> dict:
     Constructs and returns a dict containing a valid job template for the KeyShot job.
     The return value is safe to convert/dump to JSON or YAML.
     """
-
+    # Remove quotes around JSON keys to avoid having to escape quotes in the YAML string
+    # This transforms {"progressive_max_samples": 1000} to {progressive_max_samples: 1000}, for example
     render_options = re.sub(r'"([^"]+)":', r"\1:", json.dumps(lux.getRenderOptions().getDict()))
 
     return {
