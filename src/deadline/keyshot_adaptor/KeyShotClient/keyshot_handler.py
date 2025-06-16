@@ -24,6 +24,7 @@ class KeyShotHandler:
             "output_file_path": self.set_output_file_path,
             "output_format": self.set_output_format,
             "frame": self.set_frame,
+            "render_options": self.set_render_options,
             "start_render": self.start_render,
         }
         self.render_kwargs = {}
@@ -53,7 +54,12 @@ class KeyShotHandler:
         """
         print("Starting Render...")
         frame = self.render_kwargs["frame"]
-        opts = lux.getRenderOptions()
+
+        if "render_options" in self.render_kwargs:
+            opts = lux.RenderOptions(dict=self.render_kwargs["render_options"])
+        else:
+            opts = lux.getRenderOptions()
+
         opts.setAddToQueue(False)
         lux.setAnimationFrame(frame)
         output_path = self.output_path.replace("%d", str(frame))
@@ -109,3 +115,13 @@ class KeyShotHandler:
         if not os.path.isfile(scene_file):
             raise FileNotFoundError(f"The scene file '{scene_file}' does not exist")
         lux.openFile(scene_file)
+
+    def set_render_options(self, data: dict) -> None:
+        """
+        Sets the render options for the render
+
+        Args:
+            data (dict): The data given from the Adaptor. Keys expected: ['render_options']
+        """
+        if "render_options" in data:
+            self.render_kwargs["render_options"] = data["render_options"]
