@@ -28,7 +28,7 @@ class KeyShotNotRunningError(Exception):
     """Error that is raised when attempting to use KeyShot while it is not running"""
 
 
-_FIRST_KEYSHOT_ACTIONS = ["scene_file", "output_file_path", "output_format"]
+_FIRST_KEYSHOT_ACTIONS = ["scene_file", "output_file_path", "output_format", "render_options"]
 
 _KEYSHOT_RUN_KEYS = {"frame"}
 
@@ -81,7 +81,7 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
 
     @property
     def integration_data_interface_version(self) -> SemanticVersion:
-        return SemanticVersion(major=0, minor=1)
+        return SemanticVersion(major=0, minor=2)
 
     @staticmethod
     def _get_timer(timeout: int | float) -> Callable[[], bool]:
@@ -405,7 +405,11 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
             if name in run_data:
                 self._action_queue.enqueue_action(Action(name, {name: run_data[name]}))
 
-        self._action_queue.enqueue_action(Action("start_render", {"frame": run_data["frame"]}))
+        action_data = {"frame": run_data["frame"]}
+        if "render_options" in self.init_data:
+            action_data["render_options"] = self.init_data["render_options"]
+
+        self._action_queue.enqueue_action(Action("start_render", action_data))
 
         while self._keyshot_is_rendering and not self._has_exception:
             time.sleep(0.1)  # busy wait so that on_cleanup is not called

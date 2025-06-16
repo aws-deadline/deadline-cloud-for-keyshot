@@ -57,6 +57,20 @@ def mock_lux_unpause():
         yield unpause_mock
 
 
+@pytest.fixture(autouse=True)
+def mock_lux_get_render_options():
+    class MockRenderOptions:
+        def __init__(self):
+            self.__dict__ = {}
+
+        def getDict(self):
+            return {"__VERSION": 5}
+
+    with mock.patch.object(submitter.lux, "getRenderOptions") as get_render_options_mock:
+        get_render_options_mock.return_value = MockRenderOptions()
+        yield get_render_options_mock
+
+
 def test_construct_job_template():
     filename = "test_filename"
 
