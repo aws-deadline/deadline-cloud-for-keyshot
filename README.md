@@ -46,8 +46,8 @@ It automatically determines the files required based on the loaded scene, allows
 [Open Job Description template][openjd] that defines the workflow, and submits the job to the farm and queue of your choosing.
 
 There are two installation options:
-1. Windows-only: the [official Deadline Cloud submitter installer][deadline-cloud-submitter]
-2. Windows or Mac: manual installation
+1. The [official Deadline Cloud submitter installer][deadline-cloud-submitter] (recommended)
+2. Manual installation
 
 After installing, you can access the submitter in the KeyShot interface via `Window` > `Scripting Console` > `Scripts` > `Submit to AWS Deadline Cloud` > `Run`.
 
