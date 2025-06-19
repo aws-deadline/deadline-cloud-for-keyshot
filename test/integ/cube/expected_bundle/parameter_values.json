@@ -13,6 +13,10 @@
             "value": "PNG"
         },
         {
+            "name": "RenderEngine",
+            "value": "CPU"
+        },
+        {
             "name": "KeyShotFile",
             "value": "PATH_TO_BE_REPLACED\\deadline-cloud-for-keyshot\\test\\integ\\cube\\actual_bundle\\unpack\\scene.bip"
         },

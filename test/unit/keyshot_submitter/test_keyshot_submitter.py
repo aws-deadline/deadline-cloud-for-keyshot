@@ -397,3 +397,30 @@ def test_construct_job_template_timeout_values():
 
     assert actions["onEnter"]["timeout"] == submitter.KEYSHOT_ENVIRON_ENTER_TIMEOUT
     assert actions["onExit"]["timeout"] == submitter.KEYSHOT_ENVIRON_EXIT_TIMEOUT
+
+
+def test_construct_job_template_includes_render_engine_parameter():
+    with mock.patch.object(submitter.lux, "getRenderEngine") as get_render_engine_mock:
+        submitter.lux.RENDER_ENGINE_PRODUCT_GPU = 1
+        submitter.lux.RENDER_ENGINE_INTERIOR_GPU = 2
+
+        get_render_engine_mock.return_value = 0
+        template_cpu = submitter.construct_job_template("test_scene")
+
+        get_render_engine_mock.return_value = 1
+        template_gpu = submitter.construct_job_template("test_scene")
+
+        render_engine_param_cpu = next(
+            (p for p in template_cpu["parameterDefinitions"] if p["name"] == "RenderEngine"), None
+        )
+        render_engine_param_gpu = next(
+            (p for p in template_gpu["parameterDefinitions"] if p["name"] == "RenderEngine"), None
+        )
+
+        assert render_engine_param_cpu is not None
+        assert render_engine_param_cpu["default"] == "CPU"
+        assert render_engine_param_cpu["allowedValues"] == ["CPU", "GPU"]
+
+        assert render_engine_param_gpu is not None
+        assert render_engine_param_gpu["default"] == "GPU"
+        assert render_engine_param_gpu["allowedValues"] == ["CPU", "GPU"]

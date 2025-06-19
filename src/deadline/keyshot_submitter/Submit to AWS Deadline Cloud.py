@@ -114,6 +114,10 @@ def construct_job_template(filename: str) -> dict:
     # This transforms {"progressive_max_samples": 1000} to {progressive_max_samples: 1000}, for example
     render_options = re.sub(r'"([^"]+)":', r"\1:", json.dumps(lux.getRenderOptions().getDict()))
 
+    current_engine = lux.getRenderEngine()
+    is_gpu = current_engine in [lux.RENDER_ENGINE_PRODUCT_GPU, lux.RENDER_ENGINE_INTERIOR_GPU]
+    default_engine = "GPU" if is_gpu else "CPU"
+
     return {
         "specificationVersion": "jobtemplate-2023-09",
         "name": filename,
@@ -175,6 +179,18 @@ def construct_job_template(filename: str) -> dict:
                     "groupLabel": "KeyShot Settings",
                 },
             },
+            {
+                "name": "RenderEngine",
+                "type": "STRING",
+                "description": "The render engine to use (CPU or GPU).",
+                "allowedValues": ["CPU", "GPU"],
+                "default": default_engine,
+                "userInterface": {
+                    "control": "DROPDOWN_LIST",
+                    "label": "Render Engine",
+                    "groupLabel": "KeyShot Settings",
+                },
+            },
         ],
         "steps": [
             {
@@ -201,6 +217,7 @@ def construct_job_template(filename: str) -> dict:
                                         "scene_file: '{{Param.KeyShotFile}}'\n"
                                         "output_file_path: '{{Param.OutputFilePath}}'\n"
                                         "output_format: 'RENDER_OUTPUT_{{Param.OutputFormat}}'\n"
+                                        "render_engine: '{{Param.RenderEngine}}'\n"
                                         f"render_options: {render_options}\n"
                                     ),
                                 }
@@ -584,6 +601,20 @@ def create_bundle(
     else:
         settings.parameter_values.append({"name": "KeyShotFile", "value": scene_file})
 
+    render_engine = None
+    if not any(param["name"] == "RenderEngine" for param in settings.parameter_values):
+        current_engine = lux.getRenderEngine()
+        is_gpu = current_engine in [lux.RENDER_ENGINE_PRODUCT_GPU, lux.RENDER_ENGINE_INTERIOR_GPU]
+        render_engine = "GPU" if is_gpu else "CPU"
+        settings.parameter_values.append(
+            {"name": "RenderEngine", "value": "GPU" if is_gpu else "CPU"}
+        )
+    else:
+        for param in settings.parameter_values:
+            if param["name"] == "RenderEngine":
+                render_engine = param["value"]
+                break
+
     # Add default values for Conda
     major_version, minor_version = lux.getKeyShotDisplayVersion()
     settings.parameter_values.append(
@@ -597,6 +628,11 @@ def create_bundle(
     job_template = construct_job_template(scene_name)
     asset_references = construct_asset_references(settings)
     parameter_values = construct_parameter_values(settings)
+
+    if render_engine == "GPU":
+        job_template["steps"][0]["hostRequirements"]["amounts"] = [
+            {"name": "amount.worker.gpu", "min": 1}
+        ]
 
     dump_json_to_dir(job_template, bundle_dir, "template.json")
     dump_json_to_dir(asset_references, bundle_dir, "asset_references.json")
