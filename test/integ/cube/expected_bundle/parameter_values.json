@@ -13,7 +13,7 @@
             "value": "PNG"
         },
         {
-            "name": "RenderEngine",
+            "name": "RenderDevice",
             "value": "CPU"
         },
         {

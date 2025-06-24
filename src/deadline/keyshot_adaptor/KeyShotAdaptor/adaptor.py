@@ -28,7 +28,13 @@ class KeyShotNotRunningError(Exception):
     """Error that is raised when attempting to use KeyShot while it is not running"""
 
 
-_FIRST_KEYSHOT_ACTIONS = ["scene_file", "output_file_path", "output_format", "render_options"]
+_FIRST_KEYSHOT_ACTIONS = [
+    "scene_file",
+    "output_file_path",
+    "output_format",
+    "render_options",
+    "render_device",
+]
 
 _KEYSHOT_RUN_KEYS = {"frame"}
 
@@ -81,7 +87,7 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
 
     @property
     def integration_data_interface_version(self) -> SemanticVersion:
-        return SemanticVersion(major=0, minor=3)
+        return SemanticVersion(major=0, minor=2)
 
     @staticmethod
     def _get_timer(timeout: int | float) -> Callable[[], bool]:

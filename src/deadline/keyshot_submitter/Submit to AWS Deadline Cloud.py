@@ -114,9 +114,7 @@ def construct_job_template(filename: str) -> dict:
     # This transforms {"progressive_max_samples": 1000} to {progressive_max_samples: 1000}, for example
     render_options = re.sub(r'"([^"]+)":', r"\1:", json.dumps(lux.getRenderOptions().getDict()))
 
-    current_engine = lux.getRenderEngine()
-    is_gpu = current_engine in [lux.RENDER_ENGINE_PRODUCT_GPU, lux.RENDER_ENGINE_INTERIOR_GPU]
-    default_engine = "GPU" if is_gpu else "CPU"
+    default_device = get_current_render_device()
 
     return {
         "specificationVersion": "jobtemplate-2023-09",
@@ -180,14 +178,14 @@ def construct_job_template(filename: str) -> dict:
                 },
             },
             {
-                "name": "RenderEngine",
+                "name": "RenderDevice",
                 "type": "STRING",
-                "description": "The render engine to use (CPU or GPU).",
+                "description": "The render device to use (CPU or GPU).",
                 "allowedValues": ["CPU", "GPU"],
-                "default": default_engine,
+                "default": default_device,
                 "userInterface": {
                     "control": "DROPDOWN_LIST",
-                    "label": "Render Engine",
+                    "label": "Render Device (For GPU: must set host requirement min GPUs to 1)",
                     "groupLabel": "KeyShot Settings",
                 },
             },
@@ -217,7 +215,7 @@ def construct_job_template(filename: str) -> dict:
                                         "scene_file: '{{Param.KeyShotFile}}'\n"
                                         "output_file_path: '{{Param.OutputFilePath}}'\n"
                                         "output_format: 'RENDER_OUTPUT_{{Param.OutputFormat}}'\n"
-                                        "render_engine: '{{Param.RenderEngine}}'\n"
+                                        "render_device: '{{Param.RenderDevice}}'\n"
                                         f"render_options: {render_options}\n"
                                     ),
                                 }
@@ -601,18 +599,14 @@ def create_bundle(
     else:
         settings.parameter_values.append({"name": "KeyShotFile", "value": scene_file})
 
-    render_engine = None
-    if not any(param["name"] == "RenderEngine" for param in settings.parameter_values):
-        current_engine = lux.getRenderEngine()
-        is_gpu = current_engine in [lux.RENDER_ENGINE_PRODUCT_GPU, lux.RENDER_ENGINE_INTERIOR_GPU]
-        render_engine = "GPU" if is_gpu else "CPU"
-        settings.parameter_values.append(
-            {"name": "RenderEngine", "value": "GPU" if is_gpu else "CPU"}
-        )
+    render_device = None
+    if not any(param["name"] == "RenderDevice" for param in settings.parameter_values):
+        render_device = get_current_render_device()
+        settings.parameter_values.append({"name": "RenderDevice", "value": render_device})
     else:
         for param in settings.parameter_values:
-            if param["name"] == "RenderEngine":
-                render_engine = param["value"]
+            if param["name"] == "RenderDevice":
+                render_device = param["value"]
                 break
 
     # Add default values for Conda
@@ -629,7 +623,7 @@ def create_bundle(
     asset_references = construct_asset_references(settings)
     parameter_values = construct_parameter_values(settings)
 
-    if render_engine == "GPU":
+    if render_device == "GPU":
         job_template["steps"][0]["hostRequirements"]["amounts"] = [
             {"name": "amount.worker.gpu", "min": 1}
         ]
@@ -637,6 +631,12 @@ def create_bundle(
     dump_json_to_dir(job_template, bundle_dir, "template.json")
     dump_json_to_dir(asset_references, bundle_dir, "asset_references.json")
     dump_json_to_dir(parameter_values, bundle_dir, "parameter_values.json")
+
+
+def get_current_render_device() -> str:
+    current_engine = lux.getRenderEngine()
+    is_gpu = current_engine in [lux.RENDER_ENGINE_PRODUCT_GPU, lux.RENDER_ENGINE_INTERIOR_GPU]
+    return "GPU" if is_gpu else "CPU"
 
 
 if __name__ == "__main__":

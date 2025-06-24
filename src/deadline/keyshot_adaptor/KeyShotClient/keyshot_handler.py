@@ -25,7 +25,7 @@ class KeyShotHandler:
             "output_format": self.set_output_format,
             "frame": self.set_frame,
             "render_options": self.set_render_options,
-            "render_engine": self.set_render_engine,
+            "render_device": self.set_render_device,
             "start_render": self.start_render,
         }
         self.render_kwargs = {}
@@ -53,6 +53,10 @@ class KeyShotHandler:
         Raises:
             RuntimeError: .
         """
+
+        selected_render_device = self.render_kwargs["render_device"]
+        print(f"Selected render device: {selected_render_device}")
+
         print("Starting Render...")
         frame = self.render_kwargs["frame"]
 
@@ -127,20 +131,18 @@ class KeyShotHandler:
         if "render_options" in data:
             self.render_kwargs["render_options"] = data["render_options"]
 
-    def set_render_engine(self, data: dict) -> None:
+    def set_render_device(self, data: dict) -> None:
         """
         Sets the render engine (CPU or GPU) based on the parameter value.
 
         Args:
-            data (dict): The data given from the Adaptor. Keys expected: ['render_engine']
+            data (dict): The data given from the Adaptor. Keys expected: ['render_device']
 
         Raises:
             RuntimeError: If GPU rendering is requested but no compatible GPU is available
         """
-        if "render_engine" not in data:
-            return
+        self.render_kwargs["render_device"] = data["render_device"]
 
-        render_engine = data.get("render_engine")
         current_engine = lux.getRenderEngine()
 
         engine_map = {
@@ -150,14 +152,14 @@ class KeyShotHandler:
             lux.RENDER_ENGINE_INTERIOR_GPU: lux.RENDER_ENGINE_INTERIOR,
         }
 
-        if render_engine == "GPU":
-            if not lux.isGPUAvailable():
+        if self.render_kwargs["render_device"] == "GPU":
+            try:
+                if current_engine in [lux.RENDER_ENGINE_PRODUCT, lux.RENDER_ENGINE_INTERIOR]:
+                    lux.setRenderEngine(engine_map[current_engine])
+            except Exception:
                 raise RuntimeError(
-                    "GPU rendering was requested but no compatible GPU is available on this worker."
+                    "GPU rendering was requested but no compatible GPU is available on this worker. Please manually set min GPUs to 1 under 'Host requirements' in the KeyShot integrated submitter."
                 )
-
-            if current_engine in [lux.RENDER_ENGINE_PRODUCT, lux.RENDER_ENGINE_INTERIOR]:
-                lux.setRenderEngine(engine_map[current_engine])
         else:  # CPU
             if current_engine in [lux.RENDER_ENGINE_PRODUCT_GPU, lux.RENDER_ENGINE_INTERIOR_GPU]:
                 lux.setRenderEngine(engine_map[current_engine])

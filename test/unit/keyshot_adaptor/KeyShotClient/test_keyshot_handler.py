@@ -6,14 +6,19 @@ from unittest import mock
 
 import pytest
 
+RENDER_ENGINE_PRODUCT = 0
+RENDER_ENGINE_INTERIOR = 1
+RENDER_ENGINE_PRODUCT_GPU = 2
+RENDER_ENGINE_INTERIOR_GPU = 3
+
 
 @pytest.fixture(autouse=True)
 def setup_engine_constants():
     """Set up the engine constants for all tests."""
-    lux.RENDER_ENGINE_PRODUCT = 0
-    lux.RENDER_ENGINE_INTERIOR = 1
-    lux.RENDER_ENGINE_PRODUCT_GPU = 2
-    lux.RENDER_ENGINE_INTERIOR_GPU = 3
+    lux.RENDER_ENGINE_PRODUCT = RENDER_ENGINE_PRODUCT
+    lux.RENDER_ENGINE_INTERIOR = RENDER_ENGINE_INTERIOR
+    lux.RENDER_ENGINE_PRODUCT_GPU = RENDER_ENGINE_PRODUCT_GPU
+    lux.RENDER_ENGINE_INTERIOR_GPU = RENDER_ENGINE_INTERIOR_GPU
     yield
 
 
@@ -41,6 +46,7 @@ def test_start_render_uses_passed_render_options():
         handler.render_kwargs = {
             "render_options": {"engine_anti_aliasing": 1, "progressive_max_samples": 10},
             "frame": 1,
+            "render_device": "CPU",
         }
         handler.output_path = "test_%d.png"
 
@@ -52,44 +58,25 @@ def test_start_render_uses_passed_render_options():
         )
 
 
-def test_set_render_engine_gpu_with_gpu_available():
+def test_set_render_device_gpu_with_gpu_available():
     with (
-        mock.patch.object(lux, "isGPUAvailable", return_value=True),
         mock.patch.object(lux, "getRenderEngine", return_value=0),
-        mock.patch.object(lux, "setRenderEngine") as set_render_engine_mock,
+        mock.patch.object(lux, "setRenderEngine") as set_render_device_mock,
     ):
 
         handler = KeyShotHandler()
-        handler.set_render_engine({"render_engine": "GPU"})
+        handler.set_render_device({"render_device": "GPU"})
 
-        set_render_engine_mock.assert_called_once_with(2)
+        set_render_device_mock.assert_called_once_with(RENDER_ENGINE_PRODUCT_GPU)
 
 
-def test_set_render_engine_gpu_with_no_gpu_available():
+def test_set_render_device_cpu_with_gpu_engine():
     with (
-        mock.patch.object(lux, "isGPUAvailable", return_value=False),
-        mock.patch.object(lux, "getRenderEngine", return_value=0),
-        mock.patch.object(lux, "setRenderEngine") as set_render_engine_mock,
+        mock.patch.object(lux, "getRenderEngine", return_value=RENDER_ENGINE_PRODUCT_GPU),
+        mock.patch.object(lux, "setRenderEngine") as set_render_device_mock,
     ):
 
         handler = KeyShotHandler()
+        handler.set_render_device({"render_device": "CPU"})
 
-        with pytest.raises(RuntimeError) as context:
-            handler.set_render_engine({"render_engine": "GPU"})
-
-        assert "GPU rendering was requested but no compatible GPU is available" in str(
-            context.value
-        )
-        set_render_engine_mock.assert_not_called()
-
-
-def test_set_render_engine_cpu_with_gpu_engine():
-    with (
-        mock.patch.object(lux, "getRenderEngine", return_value=2),
-        mock.patch.object(lux, "setRenderEngine") as set_render_engine_mock,
-    ):
-
-        handler = KeyShotHandler()
-        handler.set_render_engine({"render_engine": "CPU"})
-
-        set_render_engine_mock.assert_called_once_with(0)
+        set_render_device_mock.assert_called_once_with(RENDER_ENGINE_PRODUCT)
