@@ -33,6 +33,7 @@ _FIRST_KEYSHOT_ACTIONS = [
     "output_file_path",
     "output_format",
     "render_options",
+    "override_render_device",
     "render_device",
 ]
 

@@ -25,6 +25,7 @@ class KeyShotHandler:
             "output_format": self.set_output_format,
             "frame": self.set_frame,
             "render_options": self.set_render_options,
+            "override_render_device": self.set_override_render_device,
             "render_device": self.set_render_device,
             "start_render": self.start_render,
         }
@@ -54,8 +55,27 @@ class KeyShotHandler:
             RuntimeError: .
         """
 
+        engine_names = {
+            0: "RENDER_ENGINE_PRODUCT",
+            1: "RENDER_ENGINE_INTERIOR",
+            3: "RENDER_ENGINE_PRODUCT_GPU",
+            4: "RENDER_ENGINE_INTERIOR_GPU",
+        }
+
+        current_engine = lux.getRenderEngine()
+        engine_name = engine_names[current_engine]
+        print(f"Selected render engine: {engine_name}")
         selected_render_device = self.render_kwargs["render_device"]
         print(f"Selected render device: {selected_render_device}")
+        override_chosen = self.render_kwargs["override_render_device"]
+        print(f"Override Keyshot render device chosen?: {override_chosen}\n")
+
+        if override_chosen and (
+            self.render_kwargs["current_device"] != self.render_kwargs["render_device"]
+        ):
+            print(
+                f"Overriding {self.render_kwargs['current_device']} with {self.render_kwargs['render_device']}...\n"
+            )
 
         print("Starting Render...")
         frame = self.render_kwargs["frame"]
@@ -131,6 +151,15 @@ class KeyShotHandler:
         if "render_options" in data:
             self.render_kwargs["render_options"] = data["render_options"]
 
+    def set_override_render_device(self, data: dict) -> None:
+        """
+        Sets the override render device flag
+
+        Args:
+            data (dict): The data given from the Adaptor. Keys expected: ['override_render_device']
+        """
+        self.render_kwargs["override_render_device"] = data["override_render_device"]
+
     def set_render_device(self, data: dict) -> None:
         """
         Sets the render engine (CPU or GPU) based on the parameter value.
@@ -141,25 +170,34 @@ class KeyShotHandler:
         Raises:
             RuntimeError: If GPU rendering is requested but no compatible GPU is available
         """
-        self.render_kwargs["render_device"] = data["render_device"]
+        override_render_device = self.render_kwargs["override_render_device"]
 
         current_engine = lux.getRenderEngine()
+        is_gpu = current_engine in [lux.RENDER_ENGINE_PRODUCT_GPU, lux.RENDER_ENGINE_INTERIOR_GPU]
+        self.render_kwargs["current_device"] = "GPU" if is_gpu else "CPU"
 
-        engine_map = {
-            lux.RENDER_ENGINE_PRODUCT: lux.RENDER_ENGINE_PRODUCT_GPU,
-            lux.RENDER_ENGINE_INTERIOR: lux.RENDER_ENGINE_INTERIOR_GPU,
-            lux.RENDER_ENGINE_PRODUCT_GPU: lux.RENDER_ENGINE_PRODUCT,
-            lux.RENDER_ENGINE_INTERIOR_GPU: lux.RENDER_ENGINE_INTERIOR,
-        }
+        if not override_render_device:
+            self.render_kwargs["render_device"] = "GPU" if is_gpu else "CPU"
+        else:
+            self.render_kwargs["render_device"] = data["render_device"]
 
         if self.render_kwargs["render_device"] == "GPU":
             try:
-                if current_engine in [lux.RENDER_ENGINE_PRODUCT, lux.RENDER_ENGINE_INTERIOR]:
-                    lux.setRenderEngine(engine_map[current_engine])
+                if not is_gpu:
+                    engine_map = {
+                        lux.RENDER_ENGINE_PRODUCT: lux.RENDER_ENGINE_PRODUCT_GPU,
+                        lux.RENDER_ENGINE_INTERIOR: lux.RENDER_ENGINE_INTERIOR_GPU,
+                    }
+                    if current_engine in engine_map:
+                        lux.setRenderEngine(engine_map[current_engine])
             except Exception:
                 raise RuntimeError(
                     "GPU rendering was requested but no compatible GPU is available on this worker. Please manually set min GPUs to 1 under 'Host requirements' in the KeyShot integrated submitter."
                 )
-        else:  # CPU
-            if current_engine in [lux.RENDER_ENGINE_PRODUCT_GPU, lux.RENDER_ENGINE_INTERIOR_GPU]:
+        elif override_render_device and self.render_kwargs["render_device"] == "CPU" and is_gpu:
+            engine_map = {
+                lux.RENDER_ENGINE_PRODUCT_GPU: lux.RENDER_ENGINE_PRODUCT,
+                lux.RENDER_ENGINE_INTERIOR_GPU: lux.RENDER_ENGINE_INTERIOR,
+            }
+            if current_engine in engine_map:
                 lux.setRenderEngine(engine_map[current_engine])

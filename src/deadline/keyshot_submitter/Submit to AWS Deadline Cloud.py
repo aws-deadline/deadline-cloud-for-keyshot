@@ -178,6 +178,18 @@ def construct_job_template(filename: str) -> dict:
                 },
             },
             {
+                "name": "OverrideRenderDevice",
+                "type": "STRING",
+                "description": "Whether to override the render device set in KeyShot.",
+                "allowedValues": ["TRUE", "FALSE"],
+                "default": "FALSE",
+                "userInterface": {
+                    "control": "CHECK_BOX",
+                    "label": "Override KeyShot render device",
+                    "groupLabel": "KeyShot Settings",
+                },
+            },
+            {
                 "name": "RenderDevice",
                 "type": "STRING",
                 "description": "The render device to use (CPU or GPU).",
@@ -215,6 +227,7 @@ def construct_job_template(filename: str) -> dict:
                                         "scene_file: '{{Param.KeyShotFile}}'\n"
                                         "output_file_path: '{{Param.OutputFilePath}}'\n"
                                         "output_format: 'RENDER_OUTPUT_{{Param.OutputFormat}}'\n"
+                                        "override_render_device: {{Param.OverrideRenderDevice}}\n"
                                         "render_device: '{{Param.RenderDevice}}'\n"
                                         f"render_options: {render_options}\n"
                                     ),
@@ -410,7 +423,7 @@ def options_dialog(show_gui=True) -> dict[str, Any]:
             "What files would you like to attach to the job?",
             0,
             [BIP_AND_REFERENCES, ONLY_BIP],
-        )
+        ),
     ]
     selections = lux.getInputDialog(
         title="AWS Deadline Cloud Submission Options",
@@ -599,15 +612,38 @@ def create_bundle(
     else:
         settings.parameter_values.append({"name": "KeyShotFile", "value": scene_file})
 
-    render_device = None
-    if not any(param["name"] == "RenderDevice" for param in settings.parameter_values):
+    override_enabled = False
+    for param in settings.parameter_values:
+        if param["name"] == "OverrideRenderDevice":
+            override_enabled = param["value"] == "TRUE"
+            break
+
+    if not any(param["name"] == "OverrideRenderDevice" for param in settings.parameter_values):
+        settings.parameter_values.append({"name": "OverrideRenderDevice", "value": "FALSE"})
+        override_enabled = False
+
+    if not override_enabled:
         render_device = get_current_render_device()
-        settings.parameter_values.append({"name": "RenderDevice", "value": render_device})
+
+        render_device_found = False
+        for param in settings.parameter_values:
+            if param["name"] == "RenderDevice":
+                param["value"] = render_device
+                render_device_found = True
+                break
+
+        if not render_device_found:
+            settings.parameter_values.append({"name": "RenderDevice", "value": render_device})
     else:
+        render_device = None
         for param in settings.parameter_values:
             if param["name"] == "RenderDevice":
                 render_device = param["value"]
                 break
+
+        if render_device is None:
+            render_device = get_current_render_device()
+            settings.parameter_values.append({"name": "RenderDevice", "value": render_device})
 
     # Add default values for Conda
     major_version, minor_version = lux.getKeyShotDisplayVersion()
@@ -623,7 +659,8 @@ def create_bundle(
     asset_references = construct_asset_references(settings)
     parameter_values = construct_parameter_values(settings)
 
-    if render_device == "GPU":
+    # Add GPU requirements if needed
+    if override_enabled and render_device == "GPU":
         job_template["steps"][0]["hostRequirements"]["amounts"] = [
             {"name": "amount.worker.gpu", "min": 1}
         ]

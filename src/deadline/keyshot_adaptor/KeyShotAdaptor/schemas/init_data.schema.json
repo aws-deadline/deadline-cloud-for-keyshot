@@ -23,6 +23,9 @@
         "render_device": {
             "enum": ["CPU", "GPU"]
         },
+        "override_render_device": {
+            "type": "boolean"
+        },
         "render_options": {
             "type": "object"
         }

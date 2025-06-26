@@ -8,8 +8,8 @@ import pytest
 
 RENDER_ENGINE_PRODUCT = 0
 RENDER_ENGINE_INTERIOR = 1
-RENDER_ENGINE_PRODUCT_GPU = 2
-RENDER_ENGINE_INTERIOR_GPU = 3
+RENDER_ENGINE_PRODUCT_GPU = 3
+RENDER_ENGINE_INTERIOR_GPU = 4
 
 
 @pytest.fixture(autouse=True)
@@ -40,6 +40,7 @@ def test_start_render_uses_passed_render_options():
         mock.patch.object(lux, "setAnimationFrame"),
         mock.patch.object(lux, "getRenderOptions") as get_render_options_mock,
         mock.patch.object(lux, "RenderOptions", return_value=mock_render_options_obj),
+        mock.patch.object(lux, "getRenderEngine", return_value=0),
     ):
 
         handler = KeyShotHandler()
@@ -47,6 +48,8 @@ def test_start_render_uses_passed_render_options():
             "render_options": {"engine_anti_aliasing": 1, "progressive_max_samples": 10},
             "frame": 1,
             "render_device": "CPU",
+            "override_render_device": False,
+            "current_device": "CPU",
         }
         handler.output_path = "test_%d.png"
 
@@ -65,6 +68,7 @@ def test_set_render_device_gpu_with_gpu_available():
     ):
 
         handler = KeyShotHandler()
+        handler.render_kwargs = {"override_render_device": True}
         handler.set_render_device({"render_device": "GPU"})
 
         set_render_device_mock.assert_called_once_with(RENDER_ENGINE_PRODUCT_GPU)
@@ -77,6 +81,21 @@ def test_set_render_device_cpu_with_gpu_engine():
     ):
 
         handler = KeyShotHandler()
+        handler.render_kwargs = {"override_render_device": True}
         handler.set_render_device({"render_device": "CPU"})
 
         set_render_device_mock.assert_called_once_with(RENDER_ENGINE_PRODUCT)
+
+
+def test_set_render_device_with_override_false():
+    with (
+        mock.patch.object(lux, "getRenderEngine", return_value=RENDER_ENGINE_PRODUCT),
+        mock.patch.object(lux, "setRenderEngine") as set_render_device_mock,
+    ):
+
+        handler = KeyShotHandler()
+        handler.render_kwargs = {"override_render_device": False}
+        handler.set_render_device({"render_device": "GPU"})
+
+        set_render_device_mock.assert_not_called()
+        assert handler.render_kwargs["render_device"] == "CPU"
