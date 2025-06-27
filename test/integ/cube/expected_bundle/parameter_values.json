@@ -18,7 +18,7 @@
         },
         {
             "name": "OverrideRenderDevice",
-            "value": "TRUE"
+            "value": "FALSE"
         },
         {
             "name": "KeyShotFile",

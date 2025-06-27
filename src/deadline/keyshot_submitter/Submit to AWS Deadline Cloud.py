@@ -616,11 +616,10 @@ def create_bundle(
     for param in settings.parameter_values:
         if param["name"] == "OverrideRenderDevice":
             override_enabled = param["value"] == "TRUE"
+            override_param_found = True
             break
-
-    if not any(param["name"] == "OverrideRenderDevice" for param in settings.parameter_values):
+    if not override_param_found:
         settings.parameter_values.append({"name": "OverrideRenderDevice", "value": "FALSE"})
-        override_enabled = False
 
     if not override_enabled:
         render_device = get_current_render_device()
