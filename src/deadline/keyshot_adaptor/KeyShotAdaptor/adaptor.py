@@ -28,7 +28,14 @@ class KeyShotNotRunningError(Exception):
     """Error that is raised when attempting to use KeyShot while it is not running"""
 
 
-_FIRST_KEYSHOT_ACTIONS = ["scene_file", "output_file_path", "output_format", "render_options"]
+_FIRST_KEYSHOT_ACTIONS = [
+    "scene_file",
+    "output_file_path",
+    "output_format",
+    "render_options",
+    "override_render_device",
+    "render_device",
+]
 
 _KEYSHOT_RUN_KEYS = {"frame"}
 

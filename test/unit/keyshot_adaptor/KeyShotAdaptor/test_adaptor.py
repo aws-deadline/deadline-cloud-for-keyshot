@@ -26,6 +26,8 @@ CURRENT_INIT_DATA_SCHEMA = {
                 "RENDER_OUTPUT_PSD32",
             ]
         },
+        "render_device": {"enum": ["CPU", "GPU"]},
+        "override_render_device": {"type": "boolean"},
         "render_options": {"type": "object"},
     },
     "required": ["scene_file"],
