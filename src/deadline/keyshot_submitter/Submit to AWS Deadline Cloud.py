@@ -1,5 +1,5 @@
 # AUTHOR AWS
-# VERSION 0.3.2
+# VERSION 0.4.0
 # Submit to AWS Deadline Cloud
 
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
@@ -649,7 +649,7 @@ def create_bundle(
     settings.parameter_values.append(
         {
             "name": "CondaPackages",
-            "value": f"keyshot={major_version}.* keyshot-openjd=0.3.*",
+            "value": f"keyshot={major_version}.* keyshot-openjd=0.4.*",
         }
     )
     settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
