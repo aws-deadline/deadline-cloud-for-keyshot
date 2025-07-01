@@ -613,6 +613,7 @@ def create_bundle(
         settings.parameter_values.append({"name": "KeyShotFile", "value": scene_file})
 
     override_enabled = False
+    override_param_found = False
     for param in settings.parameter_values:
         if param["name"] == "OverrideRenderDevice":
             override_enabled = param["value"] == "TRUE"
