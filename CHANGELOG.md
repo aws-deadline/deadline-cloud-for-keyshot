@@ -1,10 +1,14 @@
 ## 0.4.0 (2025-06-30)
 
+0.4.0 has not been released to PyPi due to a bug in the submitter.
 
-
-### Bug Fixes
+### BREAKING CHANGES
 * Configure GPU rendering with host requirements via GUI (#217) ([`6393bff`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/6393bffbbaf025c8525b3c06d65f69dd40015bb7))
 * Pass render data to adaptor and automate integration tests (#214) ([`2070688`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/20706881e1f93bc1a673db7240965d9228d6b28e))
+
+The adaptor init data schema has changed to support new features and bugfixes. The 0.4.0 submitter will supply additional init data that will be rejected by adaptors 0.3 and below.
+
+### Bug Fixes
 * turn off viewport rendering to reduce CPU usage (#212) ([`39ae2dd`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/39ae2dd06ece58e601885d82e2e36e779fe7d18f))
 * Print adaptor version when KeyShot is initialized. (#210) ([`96556fd`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/96556fd814173d5142d708fce58caf5b210f7c68))
 * add environment enter and exit timeouts (#206) ([`dbe9ffc`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/dbe9ffc3662f0e07ea70049c2b7b0e93dd3b3b04))
