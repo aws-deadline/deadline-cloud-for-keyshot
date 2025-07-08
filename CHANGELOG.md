@@ -1,3 +1,10 @@
+## 0.4.2 (2025-07-08)
+
+
+
+### Bug Fixes
+* Add error handling for KeyShot version compatibility issues (#225) ([`d1f1eba`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/d1f1eba0c09ab51d591f504517e7054fc24ea2a9))
+
 ## 0.4.1 (2025-07-01)
 
 0.4.1 has not been released to PyPi due to a bug caused by KeyShot version mismatches.
