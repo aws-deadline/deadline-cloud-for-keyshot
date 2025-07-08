@@ -180,7 +180,7 @@ def assert_expected_job_bundle_and_generated_job_bundle_are_equal(
                 # generalize to all versions of KeyShot and the adaptor
                 content2 = re.sub(
                     r"keyshot=202[3-9].\* keyshot-openjd=0.\d.\*",
-                    "keyshot=2024.* keyshot-openjd=0.3.*",
+                    "keyshot=2024.* keyshot-openjd=0.4.*",
                     content2,
                 )
 

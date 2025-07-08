@@ -26,7 +26,7 @@
         },
         {
             "name": "CondaPackages",
-            "value": "keyshot=2024.* keyshot-openjd=0.3.*"
+            "value": "keyshot=2024.* keyshot-openjd=0.4.*"
         },
         {
             "name": "CondaChannels",
