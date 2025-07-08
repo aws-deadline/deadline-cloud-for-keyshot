@@ -104,7 +104,15 @@ class KeyShotHandler:
         output_path = self.output_path.replace("%d", str(frame))
         pprint(f"KeyShot Render Options: {opts}", indent=4)
         print(f"KeyShot Render Output Format: {self.output_format_code}")
-        lux.renderImage(path=output_path, opts=opts, format=self.output_format_code)
+
+        try:
+            lux.renderImage(path=output_path, opts=opts, format=self.output_format_code)
+        except Exception as e:
+            error_message = str(e)
+            if "This scene was saved using a newer version" in error_message:
+                print(f"WARNING: Version mismatch detected but continuing: {error_message}")
+            else:
+                raise
         print(f"Finished Rendering {output_path}")
 
     def set_output_format(self, data: dict) -> None:
