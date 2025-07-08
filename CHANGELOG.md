@@ -1,6 +1,6 @@
 ## 0.4.1 (2025-07-01)
 
-
+0.4.1 has not been released to PyPi due to a bug caused by KeyShot version mismatches.
 
 ### Bug Fixes
 * Fixed override_param_found submitter bug (#221) ([`8d822a7`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/8d822a7045c8b1c0a7976285605a127bd03b9cc8))
