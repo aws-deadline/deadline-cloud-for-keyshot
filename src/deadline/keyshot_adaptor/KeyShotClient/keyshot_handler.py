@@ -110,8 +110,7 @@ class KeyShotHandler:
         except Exception as e:
             error_message = str(e)
             if "This scene was saved using a newer version" in error_message:
-                updated_error_message = error_message.split("We recommend")[0].strip()
-                updated_error_message = updated_error_message.replace("will", "may")
+                updated_error_message = "This scene was saved using a newer version. Opening it in an older version may cause some information to be lost."
                 print(f"WARNING: Version mismatch detected but continuing: {updated_error_message}")
             else:
                 raise
