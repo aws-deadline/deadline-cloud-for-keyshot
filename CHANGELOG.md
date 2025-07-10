@@ -1,3 +1,10 @@
+## 0.4.3 (2025-07-10)
+
+
+
+### Bug Fixes
+* Refined KeyShot version mismatch error message (#228) ([`ae243c7`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/ae243c7869cdeec8838bc83ba6143ef13116cf74))
+
 ## 0.4.2 (2025-07-08)
 
 0.4.2 has not been released to PyPi due to a confusing KeyShot version mismatch error message.
