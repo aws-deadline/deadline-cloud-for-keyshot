@@ -13,7 +13,7 @@ from _project import get_project_dict, get_dependencies, get_pip_platform, Depen
 
 SUPPORTED_PYTHON_VERSIONS = ["3.9", "3.10", "3.11"]
 SUPPORTED_PLATFORMS = ["Windows", "Linux", "Darwin"]
-NATIVE_DEPENDENCIES = ["xxhash"]
+NATIVE_DEPENDENCIES = ["xxhash", "psutil"]
 
 
 def _get_package_version_regex(package: str) -> re.Pattern:
