@@ -76,12 +76,29 @@ def mock_lux_get_render_options():
         yield get_render_options_mock
 
 
+@pytest.fixture(autouse=True)
+def mock_lux_get_camera():
+    with mock.patch.object(
+        submitter.lux, "getCamera", return_value="default_camera"
+    ) as get_camera_mock:
+        yield get_camera_mock
+
+
+@pytest.fixture(autouse=True)
+def mock_lux_get_model_sets():
+    with mock.patch.object(
+        submitter.lux, "getModelSets", return_value=["default_model_set"]
+    ) as get_model_sets_mock:
+        yield get_model_sets_mock
+
+
 def test_construct_job_template():
     filename = "test_filename"
 
-    job_template = submitter.construct_job_template(filename)
+    with mock.patch.object(submitter.lux, "getCameras", return_value=[]):
+        job_template = submitter.construct_job_template(filename)
 
-    assert job_template["name"] == filename
+        assert job_template["name"] == filename
 
 
 def test_construct_asset_references():
@@ -395,17 +412,20 @@ def test_get_ksp_bundle_files():
 
 
 def test_construct_job_template_timeout_values():
+    with mock.patch.object(submitter.lux, "getCameras", return_value=[]):
+        template = submitter.construct_job_template("test_scene.bip")
 
-    template = submitter.construct_job_template("test_scene.bip")
+        actions = template["steps"][0]["stepEnvironments"][0]["script"]["actions"]
 
-    actions = template["steps"][0]["stepEnvironments"][0]["script"]["actions"]
-
-    assert actions["onEnter"]["timeout"] == submitter.KEYSHOT_ENVIRON_ENTER_TIMEOUT
-    assert actions["onExit"]["timeout"] == submitter.KEYSHOT_ENVIRON_EXIT_TIMEOUT
+        assert actions["onEnter"]["timeout"] == submitter.KEYSHOT_ENVIRON_ENTER_TIMEOUT
+        assert actions["onExit"]["timeout"] == submitter.KEYSHOT_ENVIRON_EXIT_TIMEOUT
 
 
 def test_construct_job_template_includes_render_device_parameter():
-    with mock.patch.object(submitter.lux, "getRenderEngine") as get_render_device_mock:
+    with (
+        mock.patch.object(submitter.lux, "getRenderEngine") as get_render_device_mock,
+        mock.patch.object(submitter.lux, "getCameras", return_value=[]),
+    ):
         submitter.lux.RENDER_ENGINE_PRODUCT_GPU = RENDER_ENGINE_PRODUCT_GPU
         submitter.lux.RENDER_ENGINE_INTERIOR_GPU = RENDER_ENGINE_INTERIOR_GPU
 

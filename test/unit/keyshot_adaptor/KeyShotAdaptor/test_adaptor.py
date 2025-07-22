@@ -29,6 +29,7 @@ CURRENT_INIT_DATA_SCHEMA = {
         "render_device": {"enum": ["CPU", "GPU"]},
         "override_render_device": {"type": "boolean"},
         "render_options": {"type": "object"},
+        "camera": {"type": "string"},
     },
     "required": ["scene_file"],
 }
@@ -87,7 +88,7 @@ def test_if_init_data_and_run_data_schema_are_changed_schema_version_is_bumped(i
     # if init_data.schema.json or run_data.schema.json are changed, these must
     # also be bumped
     assert semantic_version.major == 0
-    assert semantic_version.minor == 2
+    assert semantic_version.minor == 3
 
 
 def test_adaptor_prints_version_on_init(init_data, capfd):

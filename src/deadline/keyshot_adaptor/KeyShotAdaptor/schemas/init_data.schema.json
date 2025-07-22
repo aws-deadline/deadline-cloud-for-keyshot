@@ -28,6 +28,9 @@
         },
         "render_options": {
             "type": "object"
+        },
+        "camera": {
+            "type": "string"
         }
     },
     "required": [

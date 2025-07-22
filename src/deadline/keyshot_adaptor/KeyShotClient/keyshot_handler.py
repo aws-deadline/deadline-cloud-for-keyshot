@@ -27,6 +27,7 @@ class KeyShotHandler:
             "render_options": self.set_render_options,
             "override_render_device": self.set_override_render_device,
             "render_device": self.set_render_device,
+            "camera": self.set_camera,
             "start_render": self.start_render,
         }
         self.render_kwargs = {}
@@ -102,6 +103,10 @@ class KeyShotHandler:
         opts.setAddToQueue(False)
         lux.setAnimationFrame(frame)
         output_path = self.output_path.replace("%d", str(frame))
+
+        output_dir = os.path.dirname(output_path)
+        print(f"Requested output directory: {output_dir}")
+
         pprint(f"KeyShot Render Options: {opts}", indent=4)
         print(f"KeyShot Render Output Format: {self.output_format_code}")
 
@@ -229,6 +234,25 @@ class KeyShotHandler:
             }
             if current_engine in engine_map:
                 lux.setRenderEngine(engine_map[current_engine])
+
+    def set_camera(self, data: dict) -> None:
+        """
+        Sets the camera to use for rendering.
+
+        Args:
+            data (dict): The data given from the Adaptor. Keys expected: ['camera']
+        """
+        camera = data.get("camera", lux.getCamera())
+
+        print(f"Setting camera to: {camera}")
+        print(f"lux.getCamera() result: {lux.getCamera()}")
+
+        try:
+            lux.setCamera(camera)
+        except Exception as e:
+            print(f"Warning: Failed to set camera to {camera}: {str(e)}")
+
+        print(f"lux.getCamera() result after setCamera(): {lux.getCamera()}")
 
 
 def get_current_render_device() -> str:

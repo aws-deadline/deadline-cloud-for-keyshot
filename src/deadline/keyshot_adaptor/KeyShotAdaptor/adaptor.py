@@ -35,6 +35,7 @@ _FIRST_KEYSHOT_ACTIONS = [
     "render_options",
     "override_render_device",
     "render_device",
+    "camera",
 ]
 
 _KEYSHOT_RUN_KEYS = {"frame"}
@@ -88,7 +89,7 @@ class KeyShotAdaptor(Adaptor[AdaptorConfiguration]):
 
     @property
     def integration_data_interface_version(self) -> SemanticVersion:
-        return SemanticVersion(major=0, minor=2)
+        return SemanticVersion(major=0, minor=3)
 
     @staticmethod
     def _get_timer(timeout: int | float) -> Callable[[], bool]:

@@ -14,6 +14,7 @@ from typing import Any, Optional, Tuple
 
 import lux
 import re
+import copy
 
 RENDER_SUBMITTER_SETTINGS_FILE_EXT = ".deadline_render_settings.json"
 SUBMISSION_MODE_KEY = "submission_mode"
@@ -115,8 +116,10 @@ def construct_job_template(filename: str) -> dict:
     render_options = re.sub(r'"([^"]+)":', r"\1:", json.dumps(lux.getRenderOptions().getDict()))
 
     default_device = get_current_render_device()
+    default_camera = lux.getCamera()
+    cameras = lux.getCameras()
 
-    return {
+    template = {
         "specificationVersion": "jobtemplate-2023-09",
         "name": filename,
         "parameterDefinitions": [
@@ -178,6 +181,17 @@ def construct_job_template(filename: str) -> dict:
                 },
             },
             {
+                "name": "Camera",
+                "type": "STRING",
+                "userInterface": {
+                    "control": "HIDDEN",
+                    "label": "Camera",
+                    "groupLabel": "KeyShot Settings",
+                },
+                "description": "The camera to use for rendering.",
+                "default": default_camera,
+            },
+            {
                 "name": "OverrideRenderDevice",
                 "type": "STRING",
                 "description": "Whether to override the render device set in KeyShot.",
@@ -229,6 +243,7 @@ def construct_job_template(filename: str) -> dict:
                                         "output_format: 'RENDER_OUTPUT_{{Param.OutputFormat}}'\n"
                                         "override_render_device: {{Param.OverrideRenderDevice}}\n"
                                         "render_device: '{{Param.RenderDevice}}'\n"
+                                        "camera: '{{Param.Camera}}'\n"
                                         f"render_options: {render_options}\n"
                                     ),
                                 }
@@ -291,6 +306,32 @@ def construct_job_template(filename: str) -> dict:
             }
         ],
     }
+
+    for camera in cameras:
+        camera_safe_name = (
+            camera.replace(" ", "_").replace("/", "_").replace("&", "and").replace("-", "_")
+        )
+        param_name = f"{camera_safe_name}OutputPath"
+
+        label = "Current Active Camera" if camera == "last_active" else f"Camera: {camera}"
+
+        template["parameterDefinitions"].append(  # type: ignore[attr-defined]
+            {
+                "name": param_name,
+                "type": "PATH",
+                "objectType": "FILE",
+                "dataFlow": "OUT",
+                "userInterface": {
+                    "control": "HIDDEN",
+                    "label": f"Output Path for {label}",
+                    "groupLabel": "KeyShot Settings",
+                },
+                "description": f"The render output path {label}.",
+                "default": "{{Param.OutputFilePath}}",
+            }
+        )
+
+    return template
 
 
 def construct_asset_references(settings: Settings) -> dict:
@@ -416,7 +457,8 @@ def options_dialog(show_gui=True) -> dict[str, Any]:
     ONLY_BIP = "Only the scene BIP file"
     if not show_gui:
         return {SUBMISSION_MODE_KEY: [0, BIP_AND_REFERENCES]}
-    dialog_items = [
+
+    file_dialog_items = [
         (
             SUBMISSION_MODE_KEY,
             lux.DIALOG_ITEM,
@@ -425,11 +467,62 @@ def options_dialog(show_gui=True) -> dict[str, Any]:
             [BIP_AND_REFERENCES, ONLY_BIP],
         ),
     ]
-    selections = lux.getInputDialog(
+
+    file_selections = lux.getInputDialog(
         title="AWS Deadline Cloud Submission Options",
-        values=dialog_items,
+        values=file_dialog_items,
         id=DEADLINE_CLOUD_DIALOG_ID,
     )
+
+    cameras = lux.getCameras()
+    active_camera = lux.getCamera()
+
+    if len(cameras) == 1:
+        file_selections["selected_cameras"] = [cameras[0]]
+        return file_selections
+
+    render_dialog_items: list[tuple[Any, ...]] = []
+
+    if cameras:
+        render_dialog_items.append((lux.DIALOG_LABEL, "Select cameras to render:"))
+
+        for i in range(len(cameras)):
+            camera = cameras[i]
+            label = "Current Active Camera" if camera == "last_active" else f"Camera: {camera}"
+
+            is_selected = (camera == active_camera) or (
+                active_camera == "active" and camera == "last_active"
+            )
+
+            render_dialog_items.append(
+                (
+                    f"camera_{i}",
+                    lux.DIALOG_CHECK,
+                    label,
+                    is_selected,
+                )
+            )
+
+    if not render_dialog_items:
+        return file_selections
+
+    render_selections = lux.getInputDialog(
+        title="Select Cameras to Render",
+        values=render_dialog_items,
+    )
+
+    selections = file_selections
+
+    selected_cameras = []
+    for i in range(len(cameras)):
+        key = f"camera_{i}"
+        if key in render_selections and render_selections[key]:
+            selected_cameras.append(cameras[i])
+
+    if not selected_cameras and cameras:
+        selected_cameras = ["last_active"]
+
+    selections["selected_cameras"] = selected_cameras
 
     return selections
 
@@ -653,17 +746,77 @@ def create_bundle(
             "value": f"keyshot={major_version}.* keyshot-openjd=0.4.*",
         }
     )
+    # settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
     settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
 
     job_template = construct_job_template(scene_name)
+
+    selected_cameras = dialog_selections.get("selected_cameras", [])
+
+    if selected_cameras:
+        steps = []
+
+        base_output_path = ""
+        for param in settings.parameter_values:
+            if param["name"] == "OutputFilePath":
+                base_output_path = param["value"]
+                break
+
+        originalStep = copy.deepcopy(job_template["steps"][0])
+        original_init_data = originalStep["stepEnvironments"][0]["script"]["embeddedFiles"][0][
+            "data"
+        ]
+
+        for camera in selected_cameras:
+            updatedStep = copy.deepcopy(originalStep)
+            updatedStep["name"] = f"Render_{camera}"
+
+            camera_safe_name = (
+                camera.replace(" ", "_").replace("/", "_").replace("&", "and").replace("-", "_")
+            )
+            param_name = f"{camera_safe_name}OutputPath"
+
+            dir_path, filename = os.path.split(base_output_path)
+            name_part, ext_part = os.path.splitext(filename)
+            camera_output_path = os.path.join(dir_path, f"{name_part}_{camera_safe_name}{ext_part}")
+
+            param_found = False
+            for param in settings.parameter_values:
+                if param["name"] == param_name:
+                    param["value"] = camera_output_path
+                    param_found = True
+                    break
+
+            if not param_found:
+                settings.parameter_values.append({"name": param_name, "value": camera_output_path})
+
+            output_dir = os.path.dirname(camera_output_path)
+            if output_dir and output_dir not in settings.output_directories:
+                settings.output_directories.append(output_dir)
+
+            step_init_data = original_init_data
+            step_init_data = step_init_data.replace(
+                "camera: '{{Param.Camera}}'", f"camera: '{camera}'"
+            )
+            step_init_data = step_init_data.replace(
+                "output_file_path: '{{Param.OutputFilePath}}'",
+                f"output_file_path: '{{{{Param.{param_name}}}}}'",
+            )
+
+            updatedStep["stepEnvironments"][0]["script"]["embeddedFiles"][0][
+                "data"
+            ] = step_init_data
+            steps.append(updatedStep)
+
+        job_template["steps"] = steps
+
     asset_references = construct_asset_references(settings)
     parameter_values = construct_parameter_values(settings)
 
     # Add GPU requirements if needed
     if override_enabled and render_device == "GPU":
-        job_template["steps"][0]["hostRequirements"]["amounts"] = [
-            {"name": "amount.worker.gpu", "min": 1}
-        ]
+        for step in job_template["steps"]:
+            step["hostRequirements"]["amounts"] = [{"name": "amount.worker.gpu", "min": 1}]
 
     dump_json_to_dir(job_template, bundle_dir, "template.json")
     dump_json_to_dir(asset_references, bundle_dir, "asset_references.json")
