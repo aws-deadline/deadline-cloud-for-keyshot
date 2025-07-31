@@ -13,12 +13,16 @@
             "value": "PNG"
         },
         {
+            "name": "OverrideRenderDevice",
+            "value": "FALSE"
+        },
+        {
             "name": "RenderDevice",
             "value": "CPU"
         },
         {
-            "name": "OverrideRenderDevice",
-            "value": "FALSE"
+            "name": "last_activeOutputPath",
+            "value": "PATH_TO_BE_REPLACED\\deadline-cloud-for-keyshot\\test\\integ\\cube\\scene.%d_last_active.png"
         },
         {
             "name": "KeyShotFile",

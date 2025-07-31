@@ -85,20 +85,26 @@ def mock_lux_get_camera():
 
 
 @pytest.fixture(autouse=True)
-def mock_lux_get_model_sets():
+def mock_lux_get_cameras():
     with mock.patch.object(
-        submitter.lux, "getModelSets", return_value=["default_model_set"]
-    ) as get_model_sets_mock:
-        yield get_model_sets_mock
+        submitter.lux, "getCameras", return_value=["last_active", "Camera 1", "Camera 2"]
+    ) as get_cameras_mock:
+        yield get_cameras_mock
+
+
+@pytest.fixture(autouse=True)
+def mock_lux_get_keyshot_display_version():
+    with mock.patch.object(
+        submitter.lux, "getKeyShotDisplayVersion", return_value=(2024, 1)
+    ) as get_version_mock:
+        yield get_version_mock
 
 
 def test_construct_job_template():
     filename = "test_filename"
+    job_template = submitter.construct_job_template(filename, {})
 
-    with mock.patch.object(submitter.lux, "getCameras", return_value=[]):
-        job_template = submitter.construct_job_template(filename)
-
-        assert job_template["name"] == filename
+    assert job_template["name"] == filename
 
 
 def test_construct_asset_references():
@@ -412,13 +418,12 @@ def test_get_ksp_bundle_files():
 
 
 def test_construct_job_template_timeout_values():
-    with mock.patch.object(submitter.lux, "getCameras", return_value=[]):
-        template = submitter.construct_job_template("test_scene.bip")
+    template = submitter.construct_job_template("test_scene.bip", {})
 
-        actions = template["steps"][0]["stepEnvironments"][0]["script"]["actions"]
+    actions = template["steps"][0]["stepEnvironments"][0]["script"]["actions"]
 
-        assert actions["onEnter"]["timeout"] == submitter.KEYSHOT_ENVIRON_ENTER_TIMEOUT
-        assert actions["onExit"]["timeout"] == submitter.KEYSHOT_ENVIRON_EXIT_TIMEOUT
+    assert actions["onEnter"]["timeout"] == submitter.KEYSHOT_ENVIRON_ENTER_TIMEOUT
+    assert actions["onExit"]["timeout"] == submitter.KEYSHOT_ENVIRON_EXIT_TIMEOUT
 
 
 def test_construct_job_template_includes_render_device_parameter():
@@ -430,10 +435,10 @@ def test_construct_job_template_includes_render_device_parameter():
         submitter.lux.RENDER_ENGINE_INTERIOR_GPU = RENDER_ENGINE_INTERIOR_GPU
 
         get_render_device_mock.return_value = RENDER_ENGINE_PRODUCT
-        template_cpu = submitter.construct_job_template("test_scene")
+        template_cpu = submitter.construct_job_template("test_scene", {})
 
         get_render_device_mock.return_value = RENDER_ENGINE_PRODUCT_GPU
-        template_gpu = submitter.construct_job_template("test_scene")
+        template_gpu = submitter.construct_job_template("test_scene", {})
 
         render_device_param_cpu = next(
             (p for p in template_cpu["parameterDefinitions"] if p["name"] == "RenderDevice"), None
@@ -449,3 +454,92 @@ def test_construct_job_template_includes_render_device_parameter():
         assert render_device_param_gpu is not None
         assert render_device_param_gpu["default"] == "GPU"
         assert render_device_param_gpu["allowedValues"] == ["CPU", "GPU"]
+
+
+# def test_construct_job_template_with_multiple_cameras():
+#     template = submitter.construct_job_template("test_scene.bip")
+
+#     camera_params = [p for p in template["parameterDefinitions"] if "OutputPath" in p["name"]]
+#     assert len(camera_params) == 3
+
+#     param_names = [p["name"] for p in camera_params]
+#     assert "last_activeOutputPath" in param_names
+#     assert "Camera_1OutputPath" in param_names
+#     assert "Camera_2OutputPath" in param_names
+
+
+def test_construct_job_template_with_multiple_cameras():
+    camera_output_paths = {
+        "last_activeOutputPath": {
+            "path": "/path/scene_last_active.png",
+            "display_name": "last_active",
+        },
+        "Camera_1OutputPath": {"path": "/path/scene_Camera_1.png", "display_name": "Camera 1"},
+        "Camera_2OutputPath": {"path": "/path/scene_Camera_2.png", "display_name": "Camera 2"},
+    }
+
+    template = submitter.construct_job_template("test_scene.bip", camera_output_paths)
+
+    camera_params = [p for p in template["parameterDefinitions"] if "OutputPath" in p["name"]]
+    assert len(camera_params) == 3
+
+    param_names = [p["name"] for p in camera_params]
+    assert "last_activeOutputPath" in param_names
+    assert "Camera_1OutputPath" in param_names
+    assert "Camera_2OutputPath" in param_names
+
+
+def test_create_bundle_with_selected_cameras():
+    settings = submitter.Settings(
+        parameter_values=[{"name": "OutputFilePath", "value": "/path/scene.%d.png"}],
+        input_filenames=[],
+        auto_detected_input_filenames=[],
+        input_directories=[],
+        output_directories=[],
+        referenced_paths=[],
+    )
+
+    dialog_selections = {
+        submitter.SUBMISSION_MODE_KEY: [1, "Only the scene BIP file"],
+        "selected_cameras": ["last_active", "Camera_1"],
+    }
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        submitter.create_bundle(settings, dialog_selections, "scene.bip", "scene", temp_dir)
+
+        with open(os.path.join(temp_dir, "template.json")) as f:
+            template = json.load(f)
+
+        assert len(template["steps"]) == 2
+        assert template["steps"][0]["name"] == "Render_last_active"
+        assert template["steps"][1]["name"] == "Render_Camera_1"
+
+
+# def test_get_camera_safe_name():
+#     assert submitter.get_camera_safe_name("Camera 1") == "Camera_1"
+#     assert submitter.get_camera_safe_name("Camera/Test") == "Camera_Test"
+#     assert submitter.get_camera_safe_name("Camera & Light") == "Camera_and_Light"
+#     assert submitter.get_camera_safe_name("Camera-View") == "Camera_View"
+
+
+def test_get_camera_output_info():
+    param_name, camera_output_path = submitter.get_camera_output_info(
+        "Camera 1", "/path/scene.%d.png"
+    )
+    assert param_name == "Camera_1OutputPath"
+    assert "Camera_1" in camera_output_path
+
+    param_name, camera_output_path = submitter.get_camera_output_info(
+        "Camera/Test", "/path/scene.%d.png"
+    )
+    assert param_name == "Camera_TestOutputPath"
+
+    param_name, camera_output_path = submitter.get_camera_output_info(
+        "Camera & Light", "/path/scene.%d.png"
+    )
+    assert param_name == "Camera_and_LightOutputPath"
+
+    param_name, camera_output_path = submitter.get_camera_output_info(
+        "Camera-View", "/path/scene.%d.png"
+    )
+    assert param_name == "Camera_ViewOutputPath"

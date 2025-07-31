@@ -7,7 +7,9 @@
             ]
         },
         "outputs": {
-            "directories": []
+            "directories": [
+                "PATH_TO_BE_REPLACED\\deadline-cloud-for-keyshot\\test\\integ\\cube"
+            ]
         },
         "referencedPaths": []
     }

@@ -244,15 +244,14 @@ class KeyShotHandler:
         """
         camera = data.get("camera", lux.getCamera())
 
-        print(f"Setting camera to: {camera}")
-        print(f"lux.getCamera() result: {lux.getCamera()}")
+        print(f"Requested Camera: {camera}")
 
         try:
             lux.setCamera(camera)
         except Exception as e:
             print(f"Warning: Failed to set camera to {camera}: {str(e)}")
 
-        print(f"lux.getCamera() result after setCamera(): {lux.getCamera()}")
+        print(f"Set Camera: {lux.getCamera()}")
 
 
 def get_current_render_device() -> str:

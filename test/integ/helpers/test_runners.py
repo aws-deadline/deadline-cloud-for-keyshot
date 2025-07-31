@@ -71,7 +71,7 @@ def run_keyshot_adaptor_test(
     job_params = {}
     with open(bundle_location / "parameter_values.json") as f:
         for param in json.loads(f.read())["parameterValues"]:
-            if param["name"] == "OutputFilePath":
+            if param["name"] == "last_activeOutputPath":
                 original_output_path = Path(param["value"])
                 param["value"] = str(output_path / original_output_path.name)
             job_params[param["name"]] = param["value"]
@@ -113,7 +113,7 @@ def run_keyshot_adaptor_test(
         expected_image_directory=test_scene_location / DIR_NAME_FOR_EXPECTED_OUTPUT_IMAGES,
         actual_image_directory=test_scene_location / DIR_NAME_FOR_ACTUAL_OUTPUT_IMAGES,
     )
-    assert os.path.isfile(output_path / "scene.0.png")
+    assert os.path.isfile(output_path / "scene.0_last_active.png")
 
 
 def run_command(args: list[str]) -> subprocess.CompletedProcess[bytes]:

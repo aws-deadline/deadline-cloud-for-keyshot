@@ -18,6 +18,7 @@ import copy
 
 RENDER_SUBMITTER_SETTINGS_FILE_EXT = ".deadline_render_settings.json"
 SUBMISSION_MODE_KEY = "submission_mode"
+SELECTED_CAMERAS = "selected_cameras"
 # Unique ID required to allow KeyShot to save selections for a dialog
 DEADLINE_CLOUD_DIALOG_ID = "e309ce79-3ee8-446a-8308-10d16dfcbb42"
 
@@ -54,6 +55,30 @@ class Settings:
 
     def apply_sticky_settings(self, sticky_settings: dict):
         input_parameter_values = sticky_settings.get("parameterValues", [])
+
+        # TODO: Future enhancement - Remove OutputFilePath entirely and ask users for individual camera output paths in GUI
+        # When we can remove OutputFilePath completely:
+        # 1. Remove OutputFilePath from job template parameterDefinitions
+        # 2. Remove base_output_path logic in create_bundle()
+        # 3. Add individual camera output path fields to GUI for each selected camera
+        # 4. Uncomment the migration code below to handle upgrading users from old OutputFilePath to new camera-specific paths
+        # This migration ensures when users upgrade the submitter, their old OutputFilePath gets converted to camername_OutputPath
+
+        # output_path_value = None
+        # has_camera_output_path = False
+
+        # for param in input_parameter_values:
+        #     if param.get("name") == "OutputFilePath":
+        #         output_path_value = param.get("value")
+        #     elif param.get("name", "").endswith("OutputPath"):
+        #         has_camera_output_path = True
+
+        # if output_path_value and not has_camera_output_path:
+        #     current_camera = lux.getCamera()
+        #     input_parameter_values.append({
+        #         "name": f"{current_camera}_OutputPath",
+        #         "value": output_path_value
+        #     })
 
         updated_parameter_values = {}
 
@@ -106,7 +131,7 @@ class Settings:
             self.referenced_paths = asset_references["referencedPaths"]
 
 
-def construct_job_template(filename: str) -> dict:
+def construct_job_template(filename: str, camera_output_paths: dict[str, dict[str, Any]]) -> dict:
     """
     Constructs and returns a dict containing a valid job template for the KeyShot job.
     The return value is safe to convert/dump to JSON or YAML.
@@ -117,7 +142,6 @@ def construct_job_template(filename: str) -> dict:
 
     default_device = get_current_render_device()
     default_camera = lux.getCamera()
-    cameras = lux.getCameras()
 
     template = {
         "specificationVersion": "jobtemplate-2023-09",
@@ -307,13 +331,11 @@ def construct_job_template(filename: str) -> dict:
         ],
     }
 
-    for camera in cameras:
-        camera_safe_name = (
-            camera.replace(" ", "_").replace("/", "_").replace("&", "and").replace("-", "_")
-        )
-        param_name = f"{camera_safe_name}OutputPath"
-
-        label = "Current Active Camera" if camera == "last_active" else f"Camera: {camera}"
+    for param_name, camera_info in camera_output_paths.items():
+        if "last_active" in param_name:
+            label = "Current Active Camera"
+        else:
+            label = f"Camera: {camera_info['display_name']}"
 
         template["parameterDefinitions"].append(  # type: ignore[attr-defined]
             {
@@ -327,7 +349,7 @@ def construct_job_template(filename: str) -> dict:
                     "groupLabel": "KeyShot Settings",
                 },
                 "description": f"The render output path {label}.",
-                "default": "{{Param.OutputFilePath}}",
+                "default": camera_info["path"],
             }
         )
 
@@ -456,7 +478,7 @@ def options_dialog(show_gui=True) -> dict[str, Any]:
     BIP_AND_REFERENCES = "The scene BIP file and all external files references"
     ONLY_BIP = "Only the scene BIP file"
     if not show_gui:
-        return {SUBMISSION_MODE_KEY: [0, BIP_AND_REFERENCES]}
+        return {SUBMISSION_MODE_KEY: [0, BIP_AND_REFERENCES], SELECTED_CAMERAS: lux.getCameras()}
 
     file_dialog_items = [
         (
@@ -477,34 +499,35 @@ def options_dialog(show_gui=True) -> dict[str, Any]:
     cameras = lux.getCameras()
     active_camera = lux.getCamera()
 
+    file_selections[SELECTED_CAMERAS] = [cameras[0]]
     if len(cameras) == 1:
-        file_selections["selected_cameras"] = [cameras[0]]
         return file_selections
 
     render_dialog_items: list[tuple[Any, ...]] = []
+    render_dialog_items.append((lux.DIALOG_LABEL, "Select cameras to render:"))
 
-    if cameras:
-        render_dialog_items.append((lux.DIALOG_LABEL, "Select cameras to render:"))
+    for i in range(len(cameras)):
+        camera = cameras[i]
+        label = "Current Active Camera" if camera == "last_active" else f"Camera: {camera}"
 
-        for i in range(len(cameras)):
-            camera = cameras[i]
-            label = "Current Active Camera" if camera == "last_active" else f"Camera: {camera}"
+        is_selected = (camera == active_camera) or (
+            active_camera == "active" and camera == "last_active"
+        )
 
-            is_selected = (camera == active_camera) or (
-                active_camera == "active" and camera == "last_active"
+        render_dialog_items.append(
+            (
+                f"camera_{i}",
+                lux.DIALOG_CHECK,
+                label,
+                is_selected,
             )
+        )
 
-            render_dialog_items.append(
-                (
-                    f"camera_{i}",
-                    lux.DIALOG_CHECK,
-                    label,
-                    is_selected,
-                )
-            )
-
-    if not render_dialog_items:
-        return file_selections
+    # NOTE: We create a separate dialog without an ID for camera selection because
+    # KeyShot's dialog system caches dialog state when an ID is provided. Using the
+    # same DEADLINE_CLOUD_DIALOG_ID would cause the cached state from the first dialog
+    # to interfere with the dynamic checkbox initialization, preventing the current
+    # active camera from being automatically selected on dialog load.
 
     render_selections = lux.getInputDialog(
         title="Select Cameras to Render",
@@ -520,9 +543,9 @@ def options_dialog(show_gui=True) -> dict[str, Any]:
             selected_cameras.append(cameras[i])
 
     if not selected_cameras and cameras:
-        selected_cameras = ["last_active"]
+        raise RuntimeError("At least one camera must be selected for rendering.")
 
-    selections["selected_cameras"] = selected_cameras
+    selections[SELECTED_CAMERAS] = selected_cameras
 
     return selections
 
@@ -746,69 +769,58 @@ def create_bundle(
             "value": f"keyshot={major_version}.* keyshot-openjd=0.4.*",
         }
     )
-    # settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
     settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
+    selected_cameras = dialog_selections.get(SELECTED_CAMERAS, [])
 
-    job_template = construct_job_template(scene_name)
+    steps = []
 
-    selected_cameras = dialog_selections.get("selected_cameras", [])
+    base_output_path = ""
+    for param in settings.parameter_values:
+        if param["name"] == "OutputFilePath":
+            base_output_path = param["value"]
+            break
 
-    if selected_cameras:
-        steps = []
+    camera_output_paths = {}
+    for camera in selected_cameras:
+        param_name, camera_output_path = get_camera_output_info(camera, base_output_path)
+        camera_output_paths[param_name] = {"path": camera_output_path, "display_name": camera}
 
-        base_output_path = ""
+    job_template = construct_job_template(scene_name, camera_output_paths)
+
+    original_step = copy.deepcopy(job_template["steps"][0])
+    original_init_data = original_step["stepEnvironments"][0]["script"]["embeddedFiles"][0]["data"]
+
+    for camera in selected_cameras:
+        updated_step = copy.deepcopy(original_step)
+        updated_step["name"] = f"Render_{camera}"
+
+        param_name, camera_output_path = get_camera_output_info(camera, base_output_path)
+
+        param_found = False
         for param in settings.parameter_values:
-            if param["name"] == "OutputFilePath":
-                base_output_path = param["value"]
+            if param["name"] == param_name:
+                param["value"] = camera_output_path
+                param_found = True
                 break
 
-        originalStep = copy.deepcopy(job_template["steps"][0])
-        original_init_data = originalStep["stepEnvironments"][0]["script"]["embeddedFiles"][0][
-            "data"
-        ]
+        if not param_found:
+            settings.parameter_values.append({"name": param_name, "value": camera_output_path})
 
-        for camera in selected_cameras:
-            updatedStep = copy.deepcopy(originalStep)
-            updatedStep["name"] = f"Render_{camera}"
+        output_dir = os.path.dirname(camera_output_path)
+        if output_dir and output_dir not in settings.output_directories:
+            settings.output_directories.append(output_dir)
 
-            camera_safe_name = (
-                camera.replace(" ", "_").replace("/", "_").replace("&", "and").replace("-", "_")
-            )
-            param_name = f"{camera_safe_name}OutputPath"
+        step_init_data = original_init_data
+        step_init_data = step_init_data.replace("camera: '{{Param.Camera}}'", f"camera: '{camera}'")
+        step_init_data = step_init_data.replace(
+            "output_file_path: '{{Param.OutputFilePath}}'",
+            f"output_file_path: '{{{{Param.{param_name}}}}}'",
+        )
 
-            dir_path, filename = os.path.split(base_output_path)
-            name_part, ext_part = os.path.splitext(filename)
-            camera_output_path = os.path.join(dir_path, f"{name_part}_{camera_safe_name}{ext_part}")
+        updated_step["stepEnvironments"][0]["script"]["embeddedFiles"][0]["data"] = step_init_data
+        steps.append(updated_step)
 
-            param_found = False
-            for param in settings.parameter_values:
-                if param["name"] == param_name:
-                    param["value"] = camera_output_path
-                    param_found = True
-                    break
-
-            if not param_found:
-                settings.parameter_values.append({"name": param_name, "value": camera_output_path})
-
-            output_dir = os.path.dirname(camera_output_path)
-            if output_dir and output_dir not in settings.output_directories:
-                settings.output_directories.append(output_dir)
-
-            step_init_data = original_init_data
-            step_init_data = step_init_data.replace(
-                "camera: '{{Param.Camera}}'", f"camera: '{camera}'"
-            )
-            step_init_data = step_init_data.replace(
-                "output_file_path: '{{Param.OutputFilePath}}'",
-                f"output_file_path: '{{{{Param.{param_name}}}}}'",
-            )
-
-            updatedStep["stepEnvironments"][0]["script"]["embeddedFiles"][0][
-                "data"
-            ] = step_init_data
-            steps.append(updatedStep)
-
-        job_template["steps"] = steps
+    job_template["steps"] = steps
 
     asset_references = construct_asset_references(settings)
     parameter_values = construct_parameter_values(settings)
@@ -827,6 +839,20 @@ def get_current_render_device() -> str:
     current_engine = lux.getRenderEngine()
     is_gpu = current_engine in [lux.RENDER_ENGINE_PRODUCT_GPU, lux.RENDER_ENGINE_INTERIOR_GPU]
     return "GPU" if is_gpu else "CPU"
+
+
+def get_camera_output_info(camera: str, base_output_path: str) -> tuple[str, str]:
+    """Get camera parameter name and output path for a given camera."""
+    camera_safe_name = (
+        camera.replace(" ", "_").replace("/", "_").replace("&", "and").replace("-", "_")
+    )
+    param_name = f"{camera_safe_name}OutputPath"
+
+    dir_path, filename = os.path.split(base_output_path)
+    name_part, ext_part = os.path.splitext(filename)
+    camera_output_path = os.path.join(dir_path, f"{name_part}_{camera_safe_name}{ext_part}")
+
+    return param_name, camera_output_path
 
 
 if __name__ == "__main__":
