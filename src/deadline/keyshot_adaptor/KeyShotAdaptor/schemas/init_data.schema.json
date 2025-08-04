@@ -19,6 +19,15 @@
                 "RENDER_OUTPUT_PSD16",
                 "RENDER_OUTPUT_PSD32"
             ]
+        },
+        "render_device": {
+            "enum": ["CPU", "GPU"]
+        },
+        "override_render_device": {
+            "type": "boolean"
+        },
+        "render_options": {
+            "type": "object"
         }
     },
     "required": [

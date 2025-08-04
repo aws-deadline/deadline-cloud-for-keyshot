@@ -1,3 +1,39 @@
+## 0.4.3 (2025-07-10)
+
+
+
+### Bug Fixes
+* Refined KeyShot version mismatch error message (#228) ([`ae243c7`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/ae243c7869cdeec8838bc83ba6143ef13116cf74))
+
+## 0.4.2 (2025-07-08)
+
+0.4.2 has not been released to PyPi due to a confusing KeyShot version mismatch error message.
+
+### Bug Fixes
+* Add error handling for KeyShot version compatibility issues (#225) ([`d1f1eba`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/d1f1eba0c09ab51d591f504517e7054fc24ea2a9))
+
+## 0.4.1 (2025-07-01)
+
+0.4.1 has not been released to PyPi due to a bug caused by KeyShot version mismatches.
+
+### Bug Fixes
+* Fixed override_param_found submitter bug (#221) ([`8d822a7`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/8d822a7045c8b1c0a7976285605a127bd03b9cc8))
+
+## 0.4.0 (2025-06-30)
+
+0.4.0 has not been released to PyPi due to a bug in the submitter.
+
+### BREAKING CHANGES
+* Configure GPU rendering with host requirements via GUI (#217) ([`6393bff`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/6393bffbbaf025c8525b3c06d65f69dd40015bb7))
+* Pass render data to adaptor and automate integration tests (#214) ([`2070688`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/20706881e1f93bc1a673db7240965d9228d6b28e))
+
+The adaptor init data schema has changed to support new features and bugfixes. The 0.4.0 submitter will supply additional init data that will be rejected by adaptors 0.3 and below.
+
+### Bug Fixes
+* turn off viewport rendering to reduce CPU usage (#212) ([`39ae2dd`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/39ae2dd06ece58e601885d82e2e36e779fe7d18f))
+* Print adaptor version when KeyShot is initialized. (#210) ([`96556fd`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/96556fd814173d5142d708fce58caf5b210f7c68))
+* add environment enter and exit timeouts (#206) ([`dbe9ffc`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/dbe9ffc3662f0e07ea70049c2b7b0e93dd3b3b04))
+
 ## 0.3.2 (2025-04-14)
 
 ### Features

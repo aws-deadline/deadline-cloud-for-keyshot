@@ -7,7 +7,7 @@ import subprocess
 from difflib import unified_diff
 from pathlib import Path
 
-import yaml
+from .image_comparison import assert_all_images_close
 
 DIR_NAME_FOR_EXPECTED_BUNDLE = "expected_bundle"
 DIR_NAME_FOR_ACTUAL_BUNDLE = "actual_bundle"
@@ -59,8 +59,14 @@ def run_keyshot_adaptor_test(
     template_path = bundle_location / "template.json"
     output_path = test_scene_location / DIR_NAME_FOR_ACTUAL_OUTPUT_IMAGES
 
-    with open(template_path) as f:
-        template = yaml.safe_load(f)
+    with open(template_path, "r") as f:
+        content = f.read().replace("progressive_max_samples: 0", "progressive_max_samples: 1000")
+
+    with open(template_path, "w") as f:
+        f.write(content)
+
+    with open(template_path, "r") as f:
+        template = json.loads(f.read())
 
     job_params = {}
     with open(bundle_location / "parameter_values.json") as f:
@@ -103,12 +109,10 @@ def run_keyshot_adaptor_test(
         )
         assert output.returncode == 0
 
-    # TODO: currently, the test output is grainy as it runs with only 16 samples,
-    # causing the test to fail. We should investigate if this can be improved
-    # assert_all_images_close(
-    #     expected_image_directory=test_scene_location / DIR_NAME_FOR_EXPECTED_OUTPUT_IMAGES,
-    #     actual_image_directory=test_scene_location / DIR_NAME_FOR_ACTUAL_OUTPUT_IMAGES,
-    # )
+    assert_all_images_close(
+        expected_image_directory=test_scene_location / DIR_NAME_FOR_EXPECTED_OUTPUT_IMAGES,
+        actual_image_directory=test_scene_location / DIR_NAME_FOR_ACTUAL_OUTPUT_IMAGES,
+    )
     assert os.path.isfile(output_path / "scene.0.png")
 
 
@@ -176,7 +180,7 @@ def assert_expected_job_bundle_and_generated_job_bundle_are_equal(
                 # generalize to all versions of KeyShot and the adaptor
                 content2 = re.sub(
                     r"keyshot=202[3-9].\* keyshot-openjd=0.\d.\*",
-                    "keyshot=2024.* keyshot-openjd=0.3.*",
+                    "keyshot=2024.* keyshot-openjd=0.4.*",
                     content2,
                 )
 

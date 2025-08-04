@@ -14,6 +14,11 @@ from .. import lux_import_override  # noqa F401
 deadline = __import__("deadline.keyshot_submitter.Submit to AWS Deadline Cloud")
 submitter = getattr(deadline.keyshot_submitter, "Submit to AWS Deadline Cloud")
 
+RENDER_ENGINE_PRODUCT = 0
+RENDER_ENGINE_INTERIOR = 1
+RENDER_ENGINE_PRODUCT_GPU = 2
+RENDER_ENGINE_INTERIOR_GPU = 3
+
 
 @pytest.fixture
 def mock_lux_is_scene_changed():
@@ -55,6 +60,20 @@ def mock_lux_pause():
 def mock_lux_unpause():
     with mock.patch.object(submitter.lux, "unpause") as unpause_mock:
         yield unpause_mock
+
+
+@pytest.fixture(autouse=True)
+def mock_lux_get_render_options():
+    class MockRenderOptions:
+        def __init__(self):
+            self.__dict__ = {}
+
+        def getDict(self):
+            return {"__VERSION": 5}
+
+    with mock.patch.object(submitter.lux, "getRenderOptions") as get_render_options_mock:
+        get_render_options_mock.return_value = MockRenderOptions()
+        yield get_render_options_mock
 
 
 def test_construct_job_template():
@@ -383,3 +402,30 @@ def test_construct_job_template_timeout_values():
 
     assert actions["onEnter"]["timeout"] == submitter.KEYSHOT_ENVIRON_ENTER_TIMEOUT
     assert actions["onExit"]["timeout"] == submitter.KEYSHOT_ENVIRON_EXIT_TIMEOUT
+
+
+def test_construct_job_template_includes_render_device_parameter():
+    with mock.patch.object(submitter.lux, "getRenderEngine") as get_render_device_mock:
+        submitter.lux.RENDER_ENGINE_PRODUCT_GPU = RENDER_ENGINE_PRODUCT_GPU
+        submitter.lux.RENDER_ENGINE_INTERIOR_GPU = RENDER_ENGINE_INTERIOR_GPU
+
+        get_render_device_mock.return_value = RENDER_ENGINE_PRODUCT
+        template_cpu = submitter.construct_job_template("test_scene")
+
+        get_render_device_mock.return_value = RENDER_ENGINE_PRODUCT_GPU
+        template_gpu = submitter.construct_job_template("test_scene")
+
+        render_device_param_cpu = next(
+            (p for p in template_cpu["parameterDefinitions"] if p["name"] == "RenderDevice"), None
+        )
+        render_device_param_gpu = next(
+            (p for p in template_gpu["parameterDefinitions"] if p["name"] == "RenderDevice"), None
+        )
+
+        assert render_device_param_cpu is not None
+        assert render_device_param_cpu["default"] == "CPU"
+        assert render_device_param_cpu["allowedValues"] == ["CPU", "GPU"]
+
+        assert render_device_param_gpu is not None
+        assert render_device_param_gpu["default"] == "GPU"
+        assert render_device_param_gpu["allowedValues"] == ["CPU", "GPU"]

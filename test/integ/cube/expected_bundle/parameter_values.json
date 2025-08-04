@@ -13,12 +13,20 @@
             "value": "PNG"
         },
         {
+            "name": "RenderDevice",
+            "value": "CPU"
+        },
+        {
+            "name": "OverrideRenderDevice",
+            "value": "FALSE"
+        },
+        {
             "name": "KeyShotFile",
             "value": "PATH_TO_BE_REPLACED\\deadline-cloud-for-keyshot\\test\\integ\\cube\\actual_bundle\\unpack\\scene.bip"
         },
         {
             "name": "CondaPackages",
-            "value": "keyshot=2024.* keyshot-openjd=0.3.*"
+            "value": "keyshot=2024.* keyshot-openjd=0.4.*"
         },
         {
             "name": "CondaChannels",
