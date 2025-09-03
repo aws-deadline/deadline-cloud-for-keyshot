@@ -11,23 +11,15 @@ except ModuleNotFoundError:
     pass
 
 
-def add_deadline_to_path() -> None:
-    src_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "src")
-    if sys.platform == "win32":
-        try:
-            os.add_dll_directory(src_path)
-        except Exception:
-            print("add_dll_directory failed: %s" % src_path)
-    sys.path.append(src_path)
-
-
 def run_submitter_test(scene_location: str, output_location: str) -> None:
-    # setup deadline imports
-    add_deadline_to_path()
+    # Add the dist directory to the path to import the built submitter
+    dist_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "dist")
+    sys.path.insert(0, dist_path)
+
+    # Import the built submitter directly
     # We can't use traditional imports due to spaces in the file name.
     # The spaces are necessary because KeyShot uses the file name as the script name.
-    deadline = __import__("deadline.keyshot_submitter.Submit to AWS Deadline Cloud")
-    submitter = getattr(deadline.keyshot_submitter, "Submit to AWS Deadline Cloud")
+    submitter = __import__("Submit to AWS Deadline Cloud")
 
     # create the scene
     lux.newScene()
@@ -37,6 +29,9 @@ def run_submitter_test(scene_location: str, output_location: str) -> None:
 
     # run the submitter
     submitter.main(show_gui=False, export_dir=output_location)
+
+    # Force script to end, which should cause KeyShot to exit
+    sys.exit(0)
 
 
 if __name__ == "__main__":

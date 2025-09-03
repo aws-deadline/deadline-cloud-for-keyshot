@@ -2,17 +2,15 @@
 import json
 import os
 import shutil
+import sys
 import tempfile
 from unittest import mock
 
 import pytest
 
-from .. import lux_import_override  # noqa F401
-
-# We can't use traditional imports due to spaces in the file name.
-# The spaces are necessary because KeyShot uses the file name as the script name.
-deadline = __import__("deadline.keyshot_submitter.Submit to AWS Deadline Cloud")
-submitter = getattr(deadline.keyshot_submitter, "Submit to AWS Deadline Cloud")
+# Add src directory to path to import submitter
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
+import submitter
 
 RENDER_ENGINE_PRODUCT = 0
 RENDER_ENGINE_INTERIOR = 1
@@ -353,11 +351,11 @@ def test_error_if_export_dir_but_also_gui():
 
 
 def test_save_ksp_bundle(mock_lux_save_package):
-    dir = os.path.normpath("/testdir/test")
+    test_dir = os.path.normpath("/testdir/test")
     bundle_name = "test_bundle.ksp"
-    expected_bundle_path = os.path.normpath(f"{dir}/{bundle_name}")
+    expected_bundle_path = os.path.normpath(f"{test_dir}/{bundle_name}")
 
-    output = submitter.save_ksp_bundle(dir, bundle_name)
+    output = submitter.save_ksp_bundle(test_dir, bundle_name)
 
     assert output == expected_bundle_path
     mock_lux_save_package.assert_called_once_with(path=expected_bundle_path)

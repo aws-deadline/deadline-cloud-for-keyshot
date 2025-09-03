@@ -6,6 +6,7 @@
 import glob
 import json
 import os
+from pathlib import Path
 import platform
 import subprocess
 import tempfile
@@ -13,7 +14,6 @@ from dataclasses import dataclass
 from typing import Any, Optional, Tuple
 
 import lux
-import re
 
 RENDER_SUBMITTER_SETTINGS_FILE_EXT = ".deadline_render_settings.json"
 SUBMISSION_MODE_KEY = "submission_mode"
@@ -38,7 +38,7 @@ class Settings:
     referenced_paths: list[str]
     auto_detected_input_filenames: list[str]
 
-    def output_sticky_settings(self):
+    def output_sticky_settings(self) -> dict:
         return {
             # we always use the current the KeyShotFile
             "parameterValues": [
@@ -51,7 +51,7 @@ class Settings:
             # Do not include auto-detected inputs and outputs since they should not be sticky
         }
 
-    def apply_sticky_settings(self, sticky_settings: dict):
+    def apply_sticky_settings(self, sticky_settings: dict) -> None:
         input_parameter_values = sticky_settings.get("parameterValues", [])
 
         updated_parameter_values = {}
@@ -77,7 +77,7 @@ class Settings:
         self.output_directories = sticky_settings.get("outputDirectories", self.output_directories)
         self.referenced_paths = sticky_settings.get("referencedPaths", self.referenced_paths)
 
-    def apply_submitter_settings(self, output: dict):
+    def apply_submitter_settings(self, output: dict) -> None:
         job_bundle_history_dir = output.get("jobHistoryBundleDirectory")
         if not job_bundle_history_dir:
             return
@@ -110,11 +110,6 @@ def construct_job_template(filename: str) -> dict:
     Constructs and returns a dict containing a valid job template for the KeyShot job.
     The return value is safe to convert/dump to JSON or YAML.
     """
-    # Remove quotes around JSON keys to avoid having to escape quotes in the YAML string
-    # This transforms {"progressive_max_samples": 1000} to {progressive_max_samples: 1000}, for example
-    render_options = re.sub(r'"([^"]+)":', r"\1:", json.dumps(lux.getRenderOptions().getDict()))
-
-    default_device = get_current_render_device()
 
     return {
         "specificationVersion": "jobtemplate-2023-09",
@@ -132,6 +127,7 @@ def construct_job_template(filename: str) -> dict:
                 },
                 "description": "The KeyShot package file to render.",
                 "default": "",  # Workaround for https://github.com/aws-deadline/deadline-cloud/issues/343
+                "maxLength": 10000,
             },
             {
                 "name": "Frames",
@@ -143,6 +139,7 @@ def construct_job_template(filename: str) -> dict:
                 },
                 "description": "The frames to render e.g. 1-3,8,11-15",
                 "minLength": 1,
+                "maxLength": 10000,
             },
             {
                 "name": "OutputFilePath",
@@ -155,6 +152,7 @@ def construct_job_template(filename: str) -> dict:
                     "groupLabel": "KeyShot Settings",
                 },
                 "description": "The render output path.",
+                "maxLength": 10000,
             },
             {
                 "name": "OutputFormat",
@@ -181,8 +179,8 @@ def construct_job_template(filename: str) -> dict:
                 "name": "OverrideRenderDevice",
                 "type": "STRING",
                 "description": "Whether to override the render device set in KeyShot.",
-                "allowedValues": ["TRUE", "FALSE"],
-                "default": "FALSE",
+                "allowedValues": ["True", "False"],
+                "default": "False",
                 "userInterface": {
                     "control": "CHECK_BOX",
                     "label": "Override KeyShot render device",
@@ -194,7 +192,7 @@ def construct_job_template(filename: str) -> dict:
                 "type": "STRING",
                 "description": "The render device to use (CPU or GPU).",
                 "allowedValues": ["CPU", "GPU"],
-                "default": default_device,
+                "default": get_current_render_device(),
                 "userInterface": {
                     "control": "DROPDOWN_LIST",
                     "label": "Render Device (For GPU: must set host requirement min GPUs to 1)",
@@ -220,42 +218,51 @@ def construct_job_template(filename: str) -> dict:
                         "script": {
                             "embeddedFiles": [
                                 {
-                                    "name": "initData",
-                                    "filename": "init-data.yaml",
+                                    "name": "sessionManagerScript",
+                                    "filename": "session_manager.py",
                                     "type": "TEXT",
-                                    "data": (
-                                        "scene_file: '{{Param.KeyShotFile}}'\n"
-                                        "output_file_path: '{{Param.OutputFilePath}}'\n"
-                                        "output_format: 'RENDER_OUTPUT_{{Param.OutputFormat}}'\n"
-                                        "override_render_device: {{Param.OverrideRenderDevice}}\n"
-                                        "render_device: '{{Param.RenderDevice}}'\n"
-                                        f"render_options: {render_options}\n"
-                                    ),
-                                }
+                                    "data": "SESSION_MANAGER_SCRIPT",
+                                },
+                                {
+                                    "name": "keyshotBridgeScript",
+                                    "filename": "keyshot_bridge.py",
+                                    "type": "TEXT",
+                                    "data": "KEYSHOT_BRIDGE_SCRIPT",
+                                },
+                                {
+                                    "name": "keyshotCommandHandlerScript",
+                                    "filename": "keyshot_command_handler.py",
+                                    "type": "TEXT",
+                                    "data": "KEYSHOT_COMMAND_HANDLER_SCRIPT",
+                                },
+                                {
+                                    "name": "taskManagerScript",
+                                    "filename": "task_manager.py",
+                                    "type": "TEXT",
+                                    "data": "TASK_MANAGER_SCRIPT",
+                                },
                             ],
                             "actions": {
                                 "onEnter": {
-                                    "command": "keyshot-openjd",
+                                    "command": "python",
                                     "args": [
-                                        "daemon",
+                                        "{{Env.File.sessionManagerScript}}",
                                         "start",
-                                        "--path-mapping-rules",
-                                        "file://{{Session.PathMappingRulesFile}}",
-                                        "--connection-file",
-                                        "{{Session.WorkingDirectory}}/connection.json",
-                                        "--init-data",
-                                        "file://{{Env.File.initData}}",
+                                        "--scene-file",
+                                        "{{Param.KeyShotFile}}",
+                                        "--keyshot-command-handler-script",
+                                        "{{Env.File.keyshotCommandHandlerScript}}",
+                                        "--keyshot-bridge-script",
+                                        "{{Env.File.keyshotBridgeScript}}",
                                     ],
                                     "cancelation": {"mode": "NOTIFY_THEN_TERMINATE"},
                                     "timeout": KEYSHOT_ENVIRON_ENTER_TIMEOUT,
                                 },
                                 "onExit": {
-                                    "command": "keyshot-openjd",
+                                    "command": "python",
                                     "args": [
-                                        "daemon",
+                                        "{{Env.File.sessionManagerScript}}",
                                         "stop",
-                                        "--connection-file",
-                                        "{{ Session.WorkingDirectory }}/connection.json",
                                     ],
                                     "cancelation": {"mode": "NOTIFY_THEN_TERMINATE"},
                                     "timeout": KEYSHOT_ENVIRON_EXIT_TIMEOUT,
@@ -267,22 +274,29 @@ def construct_job_template(filename: str) -> dict:
                 "script": {
                     "embeddedFiles": [
                         {
-                            "name": "runData",
-                            "filename": "run-data.yaml",
+                            "name": "taskManagerScript",
+                            "filename": "task_manager.py",
                             "type": "TEXT",
-                            "data": "frame: {{Task.Param.Frame}}\n",
+                            "data": "TASK_MANAGER_SCRIPT",
                         }
                     ],
                     "actions": {
                         "onRun": {
-                            "command": "keyshot-openjd",
+                            "command": "python",
                             "args": [
-                                "daemon",
-                                "run",
-                                "--connection-file",
-                                "{{ Session.WorkingDirectory }}/connection.json",
-                                "--run-data",
-                                "file://{{ Task.File.runData }}",
+                                "{{Task.File.taskManagerScript}}",
+                                "--frame",
+                                "{{Task.Param.Frame}}",
+                                "--output-path",
+                                "{{Param.OutputFilePath}}",
+                                "--output-format",
+                                "{{Param.OutputFormat}}",
+                                "--render-device",
+                                "{{Param.RenderDevice}}",
+                                "--override-render-device",
+                                "{{Param.OverrideRenderDevice}}",
+                                "--render-options",
+                                f"{json.dumps(lux.getRenderOptions().getDict())}",
                             ],
                             "cancelation": {"mode": "NOTIFY_THEN_TERMINATE"},
                         }
@@ -330,12 +344,12 @@ def substitute_suffix(path: str, suffix: str) -> str:
     return root + suffix
 
 
-def load_sticky_settings(scene_filename: str) -> Optional[dict]:
+def load_sticky_settings(scene_filename: str) -> Optional[dict[Any, Any]]:
     sticky_settings_filename = substitute_suffix(scene_filename, RENDER_SUBMITTER_SETTINGS_FILE_EXT)
     if os.path.exists(sticky_settings_filename) and os.path.isfile(sticky_settings_filename):
         try:
             with open(sticky_settings_filename, encoding="utf8") as f:
-                return json.load(f)
+                return json.load(f)  # type: ignore[no-any-return]
         except (OSError, json.JSONDecodeError):
             # Fall back to defaults if there's an error loading sticky settings
             import traceback
@@ -347,13 +361,13 @@ def load_sticky_settings(scene_filename: str) -> Optional[dict]:
     return None
 
 
-def save_sticky_settings(scene_file: str, settings: Settings):
+def save_sticky_settings(scene_file: str, settings: Settings) -> None:
     sticky_settings_filename = substitute_suffix(scene_file, RENDER_SUBMITTER_SETTINGS_FILE_EXT)
     with open(sticky_settings_filename, "w", encoding="utf8") as f:
         json.dump(settings.output_sticky_settings(), f, indent=2)
 
 
-def bundle_submit(bundle_directory: str, show_gui=True) -> Optional[dict[str, Any]]:
+def bundle_submit(bundle_directory: str, show_gui: bool = True) -> Optional[dict[str, Any]]:
     deadline_bundle_command = "gui-submit" if show_gui else "submit"
     additional_args = ["--output", "json", "--install-gui"] if show_gui else []
     try:
@@ -395,13 +409,13 @@ def bundle_submit(bundle_directory: str, show_gui=True) -> Optional[dict[str, An
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"AWS Deadline Cloud KeyShot submitter could not open: {e.stderr}")
     try:
-        return json.loads(output)
+        return json.loads(output)  # type: ignore[no-any-return]
     except json.JSONDecodeError as e:
         print(f"Error parsing deadline CLI output as json: {e}")
         return None
 
 
-def options_dialog(show_gui=True) -> dict[str, Any]:
+def options_dialog(show_gui: bool = True) -> dict[str, Any]:
     """
     Builds and displays a dialog within KeyShot to get the submission options
     reuired before the main gui submission window is opened outside of KeyShot.
@@ -431,7 +445,7 @@ def options_dialog(show_gui=True) -> dict[str, Any]:
         id=DEADLINE_CLOUD_DIALOG_ID,
     )
 
-    return selections
+    return selections  # type: ignore[no-any-return]
 
 
 def save_ksp_bundle(directory: str, bundle_name: str) -> str:
@@ -462,7 +476,7 @@ def get_ksp_bundle_files(directory: str) -> Tuple[str, list[str]]:
     ksp_archive = save_ksp_bundle(ksp_dir, "temp_deadline_cloud.zip")
     if platform.system() == "Darwin" or platform.system() == "Linux":
         subprocess.run(
-            ["unzip", ksp_archive, "-d", unpack_dir],
+            ["unzip", "-o", ksp_archive, "-d", unpack_dir],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -490,7 +504,6 @@ def get_ksp_bundle_files(directory: str) -> Tuple[str, list[str]]:
         for file in os.listdir(unpack_dir)
         if not file.endswith(".bip")
     ]
-
     bip_files = glob.glob(os.path.join(unpack_dir, "*.bip"))
 
     if not bip_files:
@@ -503,7 +516,7 @@ def get_ksp_bundle_files(directory: str) -> Tuple[str, list[str]]:
     return bip_file, input_filenames
 
 
-def main(show_gui=True, export_dir=None):
+def main(show_gui: bool = True, export_dir: Optional[str] = None) -> None:
     """
     Args:
         * show_gui:
@@ -529,7 +542,7 @@ def main(show_gui=True, export_dir=None):
             lux.unpause()
 
 
-def main_inner(show_gui=True, export_dir=None):
+def main_inner(show_gui: bool = True, export_dir: Optional[str] = None) -> None:
     if lux.isSceneChanged():
         result = lux.getInputDialog(
             title="Unsaved changes",
@@ -620,7 +633,7 @@ def create_bundle(
             override_param_found = True
             break
     if not override_param_found:
-        settings.parameter_values.append({"name": "OverrideRenderDevice", "value": "FALSE"})
+        settings.parameter_values.append({"name": "OverrideRenderDevice", "value": "False"})
 
     if not override_enabled:
         render_device = get_current_render_device()
@@ -646,11 +659,11 @@ def create_bundle(
             settings.parameter_values.append({"name": "RenderDevice", "value": render_device})
 
     # Add default values for Conda
-    major_version, minor_version = lux.getKeyShotDisplayVersion()
+    major_version, _minor_version = lux.getKeyShotDisplayVersion()
     settings.parameter_values.append(
         {
             "name": "CondaPackages",
-            "value": f"keyshot={major_version}.* keyshot-openjd=0.4.*",
+            "value": f"keyshot={major_version}.*",
         }
     )
     settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
@@ -677,4 +690,13 @@ def get_current_render_device() -> str:
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    # Check for --bundle flag for headless testing
+    if len(sys.argv) >= 3 and sys.argv[1] == "--bundle":
+        bundle_path = Path(sys.argv[2]).resolve()
+        # Create directory if it doesn't exist
+        os.makedirs(bundle_path, exist_ok=True)
+        main(show_gui=False, export_dir=str(bundle_path))
+    else:
+        main()

@@ -9,7 +9,7 @@ Before you begin, make sure you have:
 - [Deadline Cloud monitor](https://docs.aws.amazon.com/deadline-cloud/latest/userguide/monitor-onboarding.html) installed
 - Access to an AWS Deadline Cloud farm with either
     - a Windows service-managed fleet or
-    - a customer-managed fleet with KeyShot Studio, the KeyShot adapter, and licensing set up
+    - a customer-managed fleet with KeyShot Studio and licensing set up
 
 ## Installing the submitter
 

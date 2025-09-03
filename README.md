@@ -23,7 +23,7 @@ For instructions on installing and using this integration, visit the [user guide
 
 This library requires:
 1. KeyShot 2023 or 2024
-1. Python 3.9 or higher; and
+1. Python 3.11 or higher; and
 1. Windows or macOS operating system for job submission and Windows operating system for job rendering
 
 > [!NOTE]  
@@ -82,61 +82,7 @@ There are two submission modes for the KeyShot submitter which a dialog will ask
     external files referenced in the scene must be available to the workers
     through network storage or another method.
 
-## Adaptor
 
-Jobs created by the KeyShot submitter require the adaptor to be installed on your worker hosts.
-
-The KeyShot Adaptor implements the [OpenJD][openjd-adaptor-runtime] interface that allows render workloads to launch KeyShot and feed it commands. This gives the following benefits:
-* a standardized render application interface,
-* sticky rendering, where the application stays open between tasks
-
-Both fleet types in Deadline Cloud support the KeyShot adaptor:
-1. Service-managed fleets
-2. Customer-managed fleets
-
-The KeyShot integration for Deadline Cloud is supported on Windows fleets (service-managed and customer-managed).
-Linux support is experimental and can only be done on customer-managed fleets.
-
-### Service-managed fleets
-
-On [service-managed fleets][service-managed-fleets], the KeyShot adaptor is automatically available via the `deadline-cloud` Conda channel with the [default Queue Environment][default-queue-environment].
-
-### Customer-managed fleets
-
-Keyshot must be manually installed on worker hosts of customer-managed fleets.
-
-#### Manually installing on worker hosts
-
-Both the installed adaptor and the KeyShot executable (`keyshot_headless.exe`) must be available on the PATH of the user that will be running your jobs.
-
-You can also set the `KEYSHOT_EXECUTABLE` to point to the KeyShot executable. The adaptor must still be on the PATH.
-
-1. Build and install `deadline-cloud-for-keyshot` on your workers
-    - The adaptor can be installed by the standard python packaging mechanisms:
-      ```sh
-      $ pip install deadline-cloud-for-keyshot
-      ```
-    - After installation it can then be used as a command line tool:
-      ```sh
-      $ keyshot-openjd --help
-      ```
-2. KeyShot doesn't use PYTHONPATH and has a limited standard library so we explicitly load modules from the paths specified in the environment variable `DEADLINE_CLOUD_PYTHONPATH`. On your workers set the environment variable `DEADLINE_CLOUD_PYTHONPATH` to include paths to the following modules:
-    - openjd
-    - deadline
-    - pywin32_system32
-    - win32
-    - Pythonwin
-
-    e.g. On Windows running the worker in a virtual environment it might look something like:
-    ```
-    set DEADLINE_CLOUD_PYTHONPATH=C:/Users/<USER>/workervenv/Lib/site-packages/openjd;C:/Users/<USER>/workervenv/Lib/site-packages/deadline;C:/Users/<USER>/workervenv/Lib/site-packages/pywin32_system32;C:/Users/<USER>/workervenv/Lib/site-packages/win32;C:/Users/<USER>/workervenv/Lib/site-packages/win32/lib;C:/Users/<USER>/workervenv/Lib/site-packages/pythonwin
-    ```
-3. Configure licensing for KeyShot by setting the environment variable `LUXION_LICENSE_FILE=<PORT>:<ADDRESS>` to point towards the license server to use
-    - e.g. `setx LUXION_LICENSE_FILE "2703@127.0.0.1"`
-4. The adaptor expects the keyshot_headless executable is available through the PATH environment variable.
-    - e.g. Local install: `setx PATH "%LOCALAPPDATA%\KeyShot\bin;%PATH%"`
-    - e.g. System install: `setx PATH "%PROGRAMFILES%\KeyShot\bin;%PATH%"`
-    - Verify by running `keyshot_headless -h`
 
 ## Worker Licensing for KeyShot
 
@@ -151,6 +97,9 @@ If you prefer to use your own licensing for service-managed fleets, you can also
 You can use [usage based licensing][usage-based-licensing] on customer-managed fleets by [connecting them to a license endpoint](https://docs.aws.amazon.com/deadline-cloud/latest/developerguide/cmf-ubl.html).
 
 You can also use your own licensing for customer-managed fleets.
+
+> [!NOTE]  
+> The KeyShot adaptor uses TCP ports in the range 9000-9099 for internal communication during rendering. These ports only listen on the loopback interface (127.0.0.1) and do not require network access.
 
 ## Viewing the Job Bundle that will be submitted
 
