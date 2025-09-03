@@ -31,7 +31,6 @@ def read_session_info() -> int:
 
 
 async def main() -> None:
-    # Parse arguments
     parser = argparse.ArgumentParser(description="KeyShot Task")
     parser.add_argument("--frame", type=int, required=True, help="Frame number to render")
     parser.add_argument("--output-path", required=True, help="Output file path template")
@@ -53,24 +52,19 @@ async def main() -> None:
     parser.add_argument("--render-options", help="Render options JSON string")
     args = parser.parse_args()
 
-    # Read port from session info
     port = read_session_info()
 
-    # Create output directory if it doesn't exist
     Path(args.output_path).parent.mkdir(parents=True, exist_ok=True)
 
     output_path = args.output_path.replace("%d", str(args.frame))
     output_path = output_path.replace("\\", "\\\\")  # Escape backslashes for Windows paths
 
-    # Create render command for the frame
     print(f"Preparing render command for frame {args.frame}", flush=True)
 
-    # Parse render options
     render_options = {}
     if args.render_options:
         render_options = json.loads(args.render_options)
 
-    # Create JSON command
     command = {
         "command": "render",
         "frame": args.frame,
@@ -83,7 +77,6 @@ async def main() -> None:
 
     print(f"Created render command: {json.dumps(command)}")
 
-    # Connect to socket server and monitor logs
     print(f"Connecting to KeyShot server on port {port}", flush=True)
 
     return await send_command_and_monitor(command, args.frame, port)
@@ -117,7 +110,6 @@ async def send_command_and_monitor(command: dict, frame: int, port: int) -> None
         await writer.drain()
         print(f"Sent render command: {command_json.strip()}", flush=True)
 
-        # Monitor logs for completion, progress, and errors
         print(
             f"Monitoring logs for frame {frame} completion (timeout: {TASK_TIMEOUT_SECONDS}s)...",
             flush=True,
