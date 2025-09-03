@@ -32,6 +32,9 @@ dependencies = []
 Homepage = "https://github.com/aws-deadline/deadline-cloud-for-keyshot"
 Source = "https://github.com/aws-deadline/deadline-cloud-for-keyshot"
 
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
 [tool.hatch.version]
 source = "vcs"
 
