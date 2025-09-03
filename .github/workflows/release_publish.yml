@@ -35,14 +35,14 @@ jobs:
       tag: ${{ needs.TagRelease.outputs.tag }}
 
   PreRelease:
-    needs: [TagRelease, UnitTests]
-    uses: aws-deadline/.github/.github/workflows/reusable_prerelease.yml@mainline
-    permissions:
-      id-token: write
-      contents: write
-    secrets: inherit
-    with:
-      tag: ${{ needs.TagRelease.outputs.tag }}
+      needs: [TagRelease, UnitTests]
+      uses: aws-deadline/.github/.github/workflows/reusable_prerelease.yml@mainline
+      permissions:
+        id-token: write
+        contents: write
+      secrets: inherit
+      with:
+          tag: ${{ needs.TagRelease.outputs.tag }}
 
   BuildInstaller:
     needs: [TagRelease, PreRelease]
@@ -68,18 +68,6 @@ jobs:
           tag: ${{ needs.TagRelease.outputs.tag }}
 
   ReleaseInstaller:
-    needs: [TagRelease]
-    uses: aws-deadline/.github/.github/workflows/reusable_release_installers.yml@mainline
-    secrets: inherit
-    permissions:
-      id-token: write
-      contents: read
-    with:
-      tag: ${{ needs.TagRelease.outputs.tag }}
-      oses: "['Windows', 'MacOS']"
-      project_name: ${{ github.event.repository.name }}
-
-  Release:
     needs: [TagRelease]
     uses: aws-deadline/.github/.github/workflows/reusable_release_installers.yml@mainline
     secrets: inherit
