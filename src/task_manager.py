@@ -138,7 +138,6 @@ async def send_command_and_monitor(command: dict, frame: int, port: int) -> None
             print(f"KeyShot: {line}", flush=True)
 
             if check_line_for_completion(line, frame):
-                print("Render succeeded.", flush=True)
                 return
 
         raise RuntimeError(f"ERROR: Timeout waiting for frame {frame} to complete")

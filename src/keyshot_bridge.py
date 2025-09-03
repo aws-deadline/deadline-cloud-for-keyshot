@@ -39,38 +39,54 @@ def get_keyshot_executable() -> str:
 
 
 async def start_socket_server(process: Process, port: int) -> Server:
+    # Create shared output queue for all clients
+    output_queue: asyncio.Queue = asyncio.Queue()
+    asyncio.create_task(continuous_keyshot_reader(process, output_queue))
+
     async def client_handler(reader: StreamReader, writer: StreamWriter) -> None:
         print("Client connected")
-        await handle_client(reader, writer, process)
+        await handle_client(reader, writer, process, output_queue)
         print("Client disconnected")
 
     # Bind to loopback interface only to prevent external network access
     return await asyncio.start_server(client_handler, "127.0.0.1", port)
 
 
-async def handle_client(reader: StreamReader, writer: StreamWriter, process: Process) -> None:
-    async def forward_lines(source: StreamReader, destination: StreamWriter, label: str) -> None:
-        """Forwards lines from a source stream to a destination stream."""
+async def continuous_keyshot_reader(process: Process, output_queue: asyncio.Queue) -> None:
+    """Always reads KeyShot output to prevent blocking, independent of client connections."""
+    while process.returncode is None:
+        if line := await process.stdout.readline():  # type: ignore[union-attr]
+            await output_queue.put(line)
+        else:
+            break
+
+
+async def handle_client(
+    reader: StreamReader, writer: StreamWriter, process: Process, output_queue: asyncio.Queue
+) -> None:
+    async def forward_to_keyshot(source: StreamReader, destination: StreamWriter) -> None:
         while process.returncode is None:
-            try:
-                if line := await source.readline():
-                    print(f"[{label}] {line.decode().strip()}")
-                    destination.write(line)
-                    await destination.drain()
-                else:
-                    break
-            except Exception as e:
-                print(f"[{label}] Exception: {e}")
+            if line := await source.readline():
+                print(f"[Client -> KeyShot] {line.decode().strip()}")
+                destination.write(line)
+                await destination.drain()
+            else:
                 break
 
-    # Create tasks for bidirectional forwarding
-    # stdin/stdout are guaranteed to be non-None because we created the subprocess with PIPE
-    client_task = asyncio.create_task(forward_lines(reader, process.stdin, "Client -> KeyShot"))  # type: ignore[arg-type]
-    keyshot_task = asyncio.create_task(forward_lines(process.stdout, writer, "KeyShot -> Client"))  # type: ignore[arg-type]
+    async def forward_from_queue(queue: asyncio.Queue, destination: StreamWriter) -> None:
+        while True:
+            line = await queue.get()
+            destination.write(line)
+            await destination.drain()
+            queue.task_done()
+
+    # Create tasks for client communication only
+    client_task = asyncio.create_task(forward_to_keyshot(reader, process.stdin))  # type: ignore[arg-type]
+    output_task = asyncio.create_task(forward_from_queue(output_queue, writer))
 
     try:
         _, pending = await asyncio.wait(
-            [client_task, keyshot_task], return_when=asyncio.FIRST_COMPLETED
+            [client_task, output_task], return_when=asyncio.FIRST_COMPLETED
         )
 
         # When one task ends, cancel the other
@@ -79,7 +95,6 @@ async def handle_client(reader: StreamReader, writer: StreamWriter, process: Pro
             try:
                 await task
             except asyncio.CancelledError:
-                # Expected since the task should be cancelled
                 pass
 
     finally:
