@@ -38,10 +38,10 @@ def get_keyshot_executable() -> str:
     raise FileNotFoundError("Cannot find KeyShot executable. Looked for: " + str(possible_exes))
 
 
-async def start_socket_server(process: Process, port: int) -> Server:
+async def start_socket_server(process: Process, port: int) -> tuple[Server, asyncio.Task]:
     # Create shared output queue for all clients
     output_queue: asyncio.Queue = asyncio.Queue()
-    asyncio.create_task(continuous_keyshot_reader(process, output_queue))
+    keyshot_task = asyncio.create_task(continuous_keyshot_reader(process, output_queue))
 
     async def client_handler(reader: StreamReader, writer: StreamWriter) -> None:
         print("Client connected")
@@ -49,7 +49,7 @@ async def start_socket_server(process: Process, port: int) -> Server:
         print("Client disconnected")
 
     # Bind to loopback interface only to prevent external network access
-    return await asyncio.start_server(client_handler, "127.0.0.1", port)
+    return await asyncio.start_server(client_handler, "127.0.0.1", port), keyshot_task
 
 
 async def continuous_keyshot_reader(process: Process, output_queue: asyncio.Queue) -> None:
@@ -149,7 +149,8 @@ async def main() -> None:
         )
         print(f"KeyShot process started with PID: {process.pid}")
 
-        server = await start_socket_server(process, port=args.port)
+        # Save _keyshot_task in a variable so it isn't garbage collected
+        server, _keyshot_task = await start_socket_server(process, port=args.port)
         print(f"Socket server listening on port {args.port}")
 
         # Check if KeyShot process is still running
