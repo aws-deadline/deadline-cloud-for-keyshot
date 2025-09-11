@@ -19,9 +19,9 @@ import time
 from pathlib import Path
 
 
-SESSION_INFO_FILE = "session_info.json"
+SESSION_INFO_FILE = "keyshot_session_info.json"
 MAX_PORT_DISCOVERY_ATTEMPTS = 100
-STARTUP_TIMEOUT_SECONDS = 5 * 60  # 5 minutes. Leaves time to open a large scene.
+STARTUP_TIMEOUT_SECONDS = 15 * 60  # 15 minutes. Leaves time to open a large scene.
 
 
 def find_available_port_and_start_bridge(bridge_cmd: list) -> tuple[subprocess.Popen, int]:
@@ -146,7 +146,7 @@ async def start_session(scene_file: str, script_executor: str, bridge_script: st
 
     # Find available port and start bridge atomically
     bridge_process, port = find_available_port_and_start_bridge(bridge_cmd)
-    print(f"KeyShot bridge started. Port:{port} PID:  {bridge_process.pid}")
+    print(f"KeyShot bridge started. Port:{port} PID: {bridge_process.pid}")
     write_session_info(port)
 
     print(f"Waiting for KeyShot server to be ready (timeout: {STARTUP_TIMEOUT_SECONDS}s)...")
@@ -158,7 +158,7 @@ async def start_session(scene_file: str, script_executor: str, bridge_script: st
             f"WARNING: Bridge process (PID: {bridge_process.pid}) has exited with code: {bridge_process.returncode}"
         )
 
-    print("Session manager completed successfully")
+    print("Session manager started successfully")
 
 
 async def main() -> None:

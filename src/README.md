@@ -80,8 +80,8 @@ graph TB
 
 #### 1. KeyShot Command Handler (`keyshot_command_handler.py`)
 
-**Runtime Environment**: Executes within KeyShot's Python interpreter  
-**Process Lifecycle**: Long-running (entire session duration)  
+**Python interpreter**: KeyShot's Python interpreter  
+**Lifecycle**: Runs entire session. Starts during step `onEnter`, ends during step `onExit`.
 **Communication**: STDIN/STDOUT with KeyShot Bridge - reads newline-delimited JSON commands, outputs execution results and errors
 
 **Responsibilities**:
@@ -91,8 +91,8 @@ graph TB
 
 #### 2. KeyShot Bridge (`keyshot_bridge.py`)
 
-**Runtime Environment**: System Python interpreter  
-**Process Lifecycle**: Long-running (entire session duration)  
+**Python interpreter**: System Python interpreter  
+**Lifecycle**: Runs entire session. Starts during step `onEnter`, ends during step `onExit`.
 **Communication**: TCP socket server + subprocess I/O pipes - hosts socket on dynamically discovered port, forwards data between clients and KeyShot process
 
 **Responsibilities**:
@@ -102,8 +102,8 @@ graph TB
 
 #### 3. Session Manager (`session_manager.py`)
 
-**Runtime Environment**: System Python interpreter  
-**Process Lifecycle**: Short-running (OpenJD session enter/exit commands)  
+**Python interpreter**: System Python interpreter  
+**Lifecycle**: Short running. Runs once during step `onEnter` and once during step `onExit`.
 **Communication**: Subprocess management + socket client - uses command line arguments, connects to bridge via TCP
 
 **Responsibilities**:
@@ -112,8 +112,8 @@ graph TB
 
 #### 4. Task Manager (`task_manager.py`)
 
-**Runtime Environment**: System Python interpreter  
-**Process Lifecycle**: Short-running (per OpenJD task)  
+**Python interpreter**: System Python interpreter  
+**Lifecycle**: Runs for the duration of the task. Runs during task `onRun`.
 **Communication**: TCP socket client - connects to bridge, sends JSON commands, monitors output
 
 **Responsibilities**:

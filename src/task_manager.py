@@ -9,7 +9,7 @@ This script handles individual render tasks by sending JSON commands to the KeyS
 and monitoring STDOUT for progress, errors, and completion.
 
 Usage:
-    python task.py --frame <num> --port <port> --output-path <path> --output-format <format> --render-device <device>
+    python task_manager.py --frame <num> --port <port> --output-path <path> --output-format <format> --render-device <device>
 """
 
 import argparse
@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 
-SESSION_INFO_FILE = "session_info.json"
+SESSION_INFO_FILE = "keyshot_session_info.json"
 TASK_TIMEOUT_SECONDS = 24 * 60 * 60  # 24 hours
 
 

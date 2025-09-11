@@ -39,10 +39,13 @@ def get_keyshot_executable() -> str:
 
 
 async def start_socket_server(process: Process, port: int) -> tuple[Server, asyncio.Task]:
-    # Create shared output queue for all clients
+    # Create shared output queue for all clients. We need to keep read KeyShot's STDOUT even when
+    # there's not a client (e.g. between tasks) so the buffer doens't fill and crash KeyShot.
     output_queue: asyncio.Queue = asyncio.Queue()
     keyshot_task = asyncio.create_task(continuous_keyshot_reader(process, output_queue))
 
+    # Multiple clients will connect and disconnect over a session. Each task will connact as a
+    # separate client. There should be only 1 client connected at a time.
     async def client_handler(reader: StreamReader, writer: StreamWriter) -> None:
         print("Client connected")
         await handle_client(reader, writer, process, output_queue)
