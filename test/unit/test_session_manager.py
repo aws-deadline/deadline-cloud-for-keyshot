@@ -87,7 +87,7 @@ class TestSessionManager:
         # Test connection timeout
         mock_connection.side_effect = ConnectionRefusedError()
 
-        with patch("time.time", side_effect=[0, 400]):  # Simulate timeout
+        with patch("time.time", side_effect=[0, 9999]):  # Simulate timeout
             with pytest.raises(RuntimeError, match="Timeout: Could not connect"):
                 from session_manager import connect_and_validate
 
