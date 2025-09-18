@@ -4,7 +4,7 @@ mypy == 1.*
 numpy == 2.*  # for linting and integ tests
 pillow == 11.*  # for linting and integ tests
 pytest == 8.*
-pytest-cov == 6.*
+pytest-cov == 7.*
 pytest-xdist == 3.*
 ruff == 0.13.*
 types-pyyaml == 6.*
