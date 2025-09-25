@@ -54,16 +54,16 @@ class TestTaskManager:
 
     def test_progress_and_completion_monitoring(self):
         # Test success completion
-        success_line = "ADAPTER_STATUS=Success FRAME=5"
+        success_line = "ADAPTOR_STATUS=Success FRAME=5"
         assert check_line_for_completion(success_line, 5)
 
         # Test error completion
-        error_line = "ADAPTER_STATUS=Error FRAME=5 Error=Render failed"
+        error_line = "ADAPTOR_STATUS=Error FRAME=5 Error=Render failed"
         with pytest.raises(RuntimeError, match="Render failed"):
             check_line_for_completion(error_line, 5)
 
         # Test wrong frame number
-        wrong_frame_line = "ADAPTER_STATUS=Success FRAME=10"
+        wrong_frame_line = "ADAPTOR_STATUS=Success FRAME=10"
         assert not check_line_for_completion(wrong_frame_line, 5)
 
         # Test progress pattern matching
@@ -86,7 +86,7 @@ class TestTaskManager:
         # Mock successful completion
         mock_reader.readline.side_effect = [
             b"KeyShot starting\n",
-            b"ADAPTER_STATUS=Success FRAME=1\n",
+            b"ADAPTOR_STATUS=Success FRAME=1\n",
         ]
 
         command = {"command": "render", "frame": 1, "output_path": "/path/output.png"}

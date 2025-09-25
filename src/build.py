@@ -5,7 +5,7 @@
 """
 Build script for the KeyShot submitter.
 
-Embeds the adapter scripts into the submitter.py template to produce a final,
+Embeds the adaptor scripts into the submitter.py template to produce a final,
 self-contained submitter.
 
 Usage:

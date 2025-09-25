@@ -86,10 +86,10 @@ PROGRESS_PATTERN = re.compile(r"Rendering:\s+(\d+(?:\.\d+)?)%", re.IGNORECASE)
 
 
 def check_line_for_completion(line: str, frame: int) -> bool:
-    if f"ADAPTER_STATUS=Success FRAME={frame}" in line:
+    if f"ADAPTOR_STATUS=Success FRAME={frame}" in line:
         return True
 
-    if f"ADAPTER_STATUS=Error FRAME={frame}" in line:
+    if f"ADAPTOR_STATUS=Error FRAME={frame}" in line:
         print(f"openjd_fail: {line}", file=sys.stderr)
         raise RuntimeError(line)
 

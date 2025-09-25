@@ -111,11 +111,11 @@ def handle_render(params: dict) -> None:
                 raise
 
         print(f"Finished Rendering {output_path}", flush=True)
-        print(f"ADAPTER_STATUS=Success FRAME={str(frame)}", flush=True)
+        print(f"ADAPTOR_STATUS=Success FRAME={str(frame)}", flush=True)
 
     except Exception as e:
         error_msg = str(e).replace('"', '\\"')
-        print(f"ADAPTER_STATUS=Error FRAME={str(frame)} Error={error_msg}", flush=True)
+        print(f"ADAPTOR_STATUS=Error FRAME={str(frame)} Error={error_msg}", flush=True)
 
 
 def handle_stop() -> None:

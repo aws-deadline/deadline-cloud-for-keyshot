@@ -116,6 +116,18 @@ def construct_job_template(filename: str) -> dict:
         "name": filename,
         "parameterDefinitions": [
             {
+                "name": "AdaptorScriptsDir",
+                "description": "Directory containing adaptor scripts.",
+                "userInterface": {
+                    "control": "HIDDEN"
+                },
+                "type": "PATH",
+                "objectType": "DIRECTORY",
+                "dataFlow": "IN",
+                "default": "adaptor",
+                "maxLength": 10000,
+            },
+            {
                 "name": "KeyShotFile",
                 "type": "PATH",
                 "objectType": "FILE",
@@ -216,44 +228,18 @@ def construct_job_template(filename: str) -> dict:
                         "name": "KeyShot",
                         "description": "Runs KeyShot in the background.",
                         "script": {
-                            "embeddedFiles": [
-                                {
-                                    "name": "sessionManagerScript",
-                                    "filename": "session_manager.py",
-                                    "type": "TEXT",
-                                    "data": "SESSION_MANAGER_SCRIPT",
-                                },
-                                {
-                                    "name": "keyshotBridgeScript",
-                                    "filename": "keyshot_bridge.py",
-                                    "type": "TEXT",
-                                    "data": "KEYSHOT_BRIDGE_SCRIPT",
-                                },
-                                {
-                                    "name": "keyshotCommandHandlerScript",
-                                    "filename": "keyshot_command_handler.py",
-                                    "type": "TEXT",
-                                    "data": "KEYSHOT_COMMAND_HANDLER_SCRIPT",
-                                },
-                                {
-                                    "name": "taskManagerScript",
-                                    "filename": "task_manager.py",
-                                    "type": "TEXT",
-                                    "data": "TASK_MANAGER_SCRIPT",
-                                },
-                            ],
                             "actions": {
                                 "onEnter": {
                                     "command": "python",
                                     "args": [
-                                        "{{Env.File.sessionManagerScript}}",
+                                        "{{Param.AdaptorScriptsDir}}/session_manager.py",
                                         "start",
                                         "--scene-file",
                                         "{{Param.KeyShotFile}}",
                                         "--keyshot-command-handler-script",
-                                        "{{Env.File.keyshotCommandHandlerScript}}",
+                                        "{{Param.AdaptorScriptsDir}}/keyshot_command_handler.py",
                                         "--keyshot-bridge-script",
-                                        "{{Env.File.keyshotBridgeScript}}",
+                                        "{{Param.AdaptorScriptsDir}}/keyshot_bridge.py",
                                     ],
                                     "cancelation": {"mode": "NOTIFY_THEN_TERMINATE"},
                                     "timeout": KEYSHOT_ENVIRON_ENTER_TIMEOUT,
@@ -261,7 +247,7 @@ def construct_job_template(filename: str) -> dict:
                                 "onExit": {
                                     "command": "python",
                                     "args": [
-                                        "{{Env.File.sessionManagerScript}}",
+                                        "{{Param.AdaptorScriptsDir}}/session_manager.py",
                                         "stop",
                                     ],
                                     "cancelation": {"mode": "NOTIFY_THEN_TERMINATE"},
@@ -272,19 +258,11 @@ def construct_job_template(filename: str) -> dict:
                     },
                 ],
                 "script": {
-                    "embeddedFiles": [
-                        {
-                            "name": "taskManagerScript",
-                            "filename": "task_manager.py",
-                            "type": "TEXT",
-                            "data": "TASK_MANAGER_SCRIPT",
-                        }
-                    ],
                     "actions": {
                         "onRun": {
                             "command": "python",
                             "args": [
-                                "{{Task.File.taskManagerScript}}",
+                                "{{Param.AdaptorScriptsDir}}/task_manager.py",
                                 "--frame",
                                 "{{Task.Param.Frame}}",
                                 "--output-path",
@@ -668,6 +646,20 @@ def create_bundle(
     )
     settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
 
+    # Add adaptor scripts
+    scripts_dir = Path(bundle_dir) / "adaptor"
+    scripts_dir.mkdir(exist_ok=True)
+
+    # Contents in the f.write calls will be replaced with the actual script contents by build.py
+    with open(scripts_dir / "session_manager.py", "w", encoding="utf-8") as f:
+        f.write("SESSION_MANAGER_SCRIPT")
+    with open(scripts_dir / "keyshot_bridge.py", "w", encoding="utf-8") as f:
+        f.write("KEYSHOT_BRIDGE_SCRIPT")
+    with open(scripts_dir / "keyshot_command_handler.py", "w", encoding="utf-8") as f:
+        f.write("KEYSHOT_COMMAND_HANDLER_SCRIPT")
+    with open(scripts_dir / "task_manager.py", "w", encoding="utf-8") as f:
+        f.write("TASK_MANAGER_SCRIPT")
+    
     job_template = construct_job_template(scene_name)
     asset_references = construct_asset_references(settings)
     parameter_values = construct_parameter_values(settings)
