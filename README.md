@@ -25,6 +25,7 @@ This library requires:
 1. KeyShot 2023 or 2024
 1. Python 3.11 or higher; and
 1. Windows or macOS operating system for job submission and Windows operating system for job rendering
+1. A Deadline Cloud queue with job attachments configured
 
 > [!NOTE]  
 > Deadline Cloud service-managed fleets have built-in support for KeyShot 2024 only. When submitting a job from KeyShot 2023, you can still render your job on KeyShot 2024 by updating the "Conda Packages" field in the submitter specify `keyshot=2024.*`.
