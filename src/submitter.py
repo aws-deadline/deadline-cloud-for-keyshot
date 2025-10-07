@@ -118,9 +118,7 @@ def construct_job_template(filename: str) -> dict:
             {
                 "name": "AdaptorScriptsDir",
                 "description": "Directory containing adaptor scripts.",
-                "userInterface": {
-                    "control": "HIDDEN"
-                },
+                "userInterface": {"control": "HIDDEN"},
                 "type": "PATH",
                 "objectType": "DIRECTORY",
                 "dataFlow": "IN",
@@ -659,7 +657,7 @@ def create_bundle(
         f.write("KEYSHOT_COMMAND_HANDLER_SCRIPT")
     with open(scripts_dir / "task_manager.py", "w", encoding="utf-8") as f:
         f.write("TASK_MANAGER_SCRIPT")
-    
+
     job_template = construct_job_template(scene_name)
     asset_references = construct_asset_references(settings)
     parameter_values = construct_parameter_values(settings)
