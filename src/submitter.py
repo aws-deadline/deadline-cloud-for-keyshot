@@ -61,9 +61,9 @@ class Settings:
 
         for param in input_parameter_values:
             if param.get("name") and param.get("value"):
-                # Don't re-use KeyShotFile param if the render settings are copied from one file to another
+                # Don't re-use KeyShotFile or AdaptorScriptsDir, they are in a new temp dir for every submission
                 # Don't preserve conda settings so the Keyshot version can be updated by updating the submitter
-                if param["name"] in ["KeyShotFile", "CondaPackages", "CondaChannels"]:
+                if param["name"] in ["KeyShotFile", "AdaptorScriptsDir", "CondaPackages", "CondaChannels"]:
                     continue
                 updated_parameter_values[param["name"]] = param["value"]
 
