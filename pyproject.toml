@@ -29,7 +29,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "deadline >= 0.48.9,< 0.51",
+    "deadline >= 0.48.9,< 0.53",
     "openjd-adaptor-runtime >= 0.7,< 0.10",
 ]
 
@@ -178,4 +178,4 @@ trim_blocks = true
 lstrip_blocks = true
 
 [tool.semantic_release.branches.release]
-match = "(mainline|release)"
+match = "(mainline|release|patch_.*)"
