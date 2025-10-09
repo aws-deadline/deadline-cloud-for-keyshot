@@ -57,7 +57,6 @@ async def main() -> None:
     Path(args.output_path).parent.mkdir(parents=True, exist_ok=True)
 
     output_path = args.output_path.replace("%d", str(args.frame))
-    output_path = output_path.replace("\\", "\\\\")  # Escape backslashes for Windows paths
 
     print(f"Preparing render command for frame {args.frame}", flush=True)
 

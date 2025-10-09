@@ -106,8 +106,8 @@ class TestTaskManager:
                         asyncio.run(main())
 
                 command = mock_send.call_args[0][0]
-                expected_path = Path(temp_dir) / "render_42.png"
-                assert Path(command["output_path"]) == expected_path
+                expected_path = str(Path(temp_dir) / "render_42.png")
+                assert command["output_path"] == expected_path
 
             # Verify send_command_and_monitor called with correct parameters
             mock_send.assert_called_once_with(command, 42, 9000)
