@@ -49,6 +49,66 @@ class TestTaskManager:
             assert command["output_format"] == "EXR"
             assert command["render_device"] == "GPU"
 
+    def test_read_session_info_file(self):
+        # Test that session info is properly read (without mocking the function we're testing)
+        from task_manager import read_session_info
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            session_file = Path(temp_dir) / "keyshot_session_info.json"
+            session_data = {"port": 8080}
+
+            with open(session_file, "w") as f:
+                import json
+
+                json.dump(session_data, f)
+
+            with patch("task_manager.SESSION_INFO_FILE", str(session_file)):
+                port = read_session_info()
+                assert port == 8080
+
+    def test_check_line_for_completion(self):
+        from task_manager import check_line_for_completion
+
+        # Test success detection
+        assert check_line_for_completion("ADAPTOR_STATUS=Success FRAME=1", 1)
+        assert not check_line_for_completion("ADAPTOR_STATUS=Success FRAME=2", 1)
+
+        # Test error detection raises exception
+        with pytest.raises(RuntimeError):
+            check_line_for_completion("ADAPTOR_STATUS=Error Error=Something failed", 1)
+
+        # Test normal output
+        assert not check_line_for_completion("Rendering frame 1...", 1)
+        assert not check_line_for_completion("", 1)
+
+    def test_frame_substitution_in_output_path(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_template = str(Path(temp_dir) / "render_%d.png")
+
+            with patch(
+                "sys.argv",
+                [
+                    "task_manager.py",
+                    "--frame",
+                    "42",
+                    "--output-path",
+                    output_template,
+                    "--output-format",
+                    "PNG",
+                    "--render-device",
+                    "CPU",
+                ],
+            ):
+                with patch(
+                    "task_manager.send_command_and_monitor", new_callable=AsyncMock
+                ) as mock_send:
+                    with patch("task_manager.read_session_info", return_value=9000):
+                        asyncio.run(main())
+
+                command = mock_send.call_args[0][0]
+                expected_path = str(Path(temp_dir) / "render_42.png")
+                assert command["output_path"] == expected_path
+
             # Verify send_command_and_monitor called with correct parameters
             mock_send.assert_called_once_with(command, 42, 9000)
 

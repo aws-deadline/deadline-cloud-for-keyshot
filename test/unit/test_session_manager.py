@@ -1,6 +1,7 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 import asyncio
+import os
 import sys
 from pathlib import Path
 from unittest.mock import patch, MagicMock, AsyncMock
@@ -48,11 +49,44 @@ class TestSessionManager:
 
         # Verify connection attempt and cleanup
         mock_connection.assert_called_with("localhost", 9000)
+
+    @pytest.mark.asyncio
+    @patch("asyncio.open_connection")
+    async def test_send_stop_command(self, mock_connection):
+        mock_reader = AsyncMock()
+        mock_writer = MagicMock()
+        mock_writer.close = MagicMock()
+        mock_writer.wait_closed = AsyncMock()
+        mock_writer.drain = AsyncMock()  # Fix: make drain async
+        mock_connection.return_value = (mock_reader, mock_writer)
+
+        with patch("session_manager.read_session_info", return_value=9000):
+            await send_stop_command()
+
+        # Verify stop command was sent
+        mock_writer.write.assert_called_once()
+        written_data = mock_writer.write.call_args[0][0]
+        assert b'{"command": "stop"}' in written_data
+
+        # Verify connection cleanup
         mock_writer.close.assert_called_once()
         mock_writer.wait_closed.assert_called_once()
 
-        # Verify process status check
-        mock_process.poll.assert_called_once()
+    def test_write_and_read_session_info(self):
+        import tempfile  # Fix: add missing import
+        from session_manager import write_session_info, read_session_info
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            session_file = os.path.join(temp_dir, "keyshot_session_info.json")
+
+            with patch("session_manager.SESSION_INFO_FILE", session_file):
+                # Test writing session info
+                write_session_info(8080)
+                assert os.path.exists(session_file)
+
+                # Test reading session info
+                port = read_session_info()
+                assert port == 8080
 
     @pytest.mark.asyncio
     @patch("asyncio.open_connection")

@@ -1,8 +1,12 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 import sys
+import os
 from unittest import mock
 import pytest
+
+# Add src directory to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 # Mock lux module before importing our code
 sys.modules["lux"] = mock.MagicMock()
@@ -270,3 +274,48 @@ def test_parse_and_handle_command_stop():
         parse_and_handle_command()
 
         exit_mock.assert_called_once_with(0)
+
+
+def test_handle_render_sets_animation_frame():
+    with (
+        mock.patch.object(lux, "setAnimationFrame") as set_frame_mock,
+        mock.patch.object(lux, "renderImage"),
+        mock.patch.object(lux, "getRenderOptions", return_value=mock.MagicMock()),
+        mock.patch.object(lux, "getRenderEngine", return_value=0),
+        mock.patch("builtins.print"),
+    ):
+        params = {
+            "frame": 42,
+            "output_path": "test.png",
+            "render_device": "CPU",
+            "output_format": "PNG",
+            "override_render_device": False,
+        }
+
+        handle_render(params)
+        set_frame_mock.assert_called_once_with(42)
+
+
+def test_handle_render_no_render_options():
+    mock_default_options = mock.MagicMock()
+    with (
+        mock.patch.object(lux, "renderImage") as render_image_mock,
+        mock.patch.object(lux, "setAnimationFrame"),
+        mock.patch.object(lux, "getRenderOptions", return_value=mock_default_options),
+        mock.patch.object(lux, "getRenderEngine", return_value=0),
+        mock.patch("builtins.print"),
+    ):
+        params = {
+            "frame": 1,
+            "output_path": "test.png",
+            "render_device": "CPU",
+            "output_format": "PNG",
+            "override_render_device": False,
+        }
+
+        handle_render(params)
+
+        # Should use default render options when none provided
+        render_image_mock.assert_called_once_with(
+            path="test.png", opts=mock_default_options, format=lux.RENDER_OUTPUT_PNG
+        )
