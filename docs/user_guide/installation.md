@@ -20,7 +20,7 @@ The KeyShot submitter extension allows you to submit jobs to Deadline Cloud dire
 2. Run the installer and follow the on-screen instructions
 3. Launch KeyShot after installation
 
-> Currently a submitter installer is only availble for Windows. See the [the developer README](../../README.md) for manual install instructions for Mac.
+> Currently a submitter installer is only availble for Windows. See the [the developer README](https://github.com/aws-deadline/deadline-cloud-for-keyshot/blob/mainline/README.md#manually-installing-the-submitter) for manual install instructions for Mac.
 
 
 ## Updating the submitter
