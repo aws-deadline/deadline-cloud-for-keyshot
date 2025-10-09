@@ -89,7 +89,7 @@ def check_line_for_completion(line: str, frame: int) -> bool:
     if f"ADAPTOR_STATUS=Success FRAME={frame}" in line:
         return True
 
-    if f"ADAPTOR_STATUS=Error FRAME={frame}" in line:
+    if "ADAPTOR_STATUS=Error " in line:
         print(f"openjd_fail: {line}", file=sys.stderr)
         raise RuntimeError(line)
 

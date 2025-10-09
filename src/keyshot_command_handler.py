@@ -77,45 +77,42 @@ def handle_render(params: dict) -> None:
     frame = params["frame"]
     output_path = params["output_path"]
     render_device = params["render_device"]
+    output_format = params["output_format"]
     override_render_device = params.get("override_render_device", False)
     render_options = params.get("render_options", {})
 
     print(f"Rendering frame {frame} to {output_path}")
 
+    lux.setAnimationFrame(frame)
+    apply_render_device_override(render_device, override_render_device)
+
+    print("Starting Render...")
+
+    # Set up render options
+    if render_options:
+        opts = lux.RenderOptions(dict=render_options)
+    else:
+        opts = lux.getRenderOptions()
+
+    opts.setAddToQueue(False)
+
     try:
-        lux.setAnimationFrame(frame)
-        apply_render_device_override(render_device, override_render_device)
-
-        print("Starting Render...")
-
-        # Set up render options
-        if render_options:
-            opts = lux.RenderOptions(dict=render_options)
-        else:
-            opts = lux.getRenderOptions()
-
-        opts.setAddToQueue(False)
-
-        try:
-            lux.renderImage(path=output_path, opts=opts, format=lux.RENDER_OUTPUT_PNG)
-        except Exception as e:
-            error_message = str(e)
-            if "This scene was saved using a newer version" in error_message:
-                updated_error_message = "This scene was saved using a newer version. Opening it in an older version may cause some information to be lost."
-                print(
-                    f"WARNING: Version mismatch detected but continuing: {updated_error_message}",
-                    flush=True,
-                )
-                # Assume render succeeded despite the warning
-            else:
-                raise
-
-        print(f"Finished Rendering {output_path}", flush=True)
-        print(f"ADAPTOR_STATUS=Success FRAME={str(frame)}", flush=True)
-
+        lux.renderImage(
+            path=output_path, opts=opts, format=getattr(lux, f"RENDER_OUTPUT_{output_format}")
+        )
     except Exception as e:
-        error_msg = str(e).replace('"', '\\"')
-        print(f"ADAPTOR_STATUS=Error FRAME={str(frame)} Error={error_msg}", flush=True)
+        error_message = str(e)
+        if "This scene was saved using a newer version" in error_message:
+            updated_error_message = "This scene was saved using a newer version. Opening it in an older version may cause some information to be lost."
+            print(
+                f"WARNING: Version mismatch detected but continuing: {updated_error_message}",
+                flush=True,
+            )
+            # Assume render succeeded despite the warning
+        else:
+            raise
+
+    print(f"Finished Rendering {output_path}", flush=True)
 
 
 def handle_stop() -> None:
@@ -123,34 +120,40 @@ def handle_stop() -> None:
     sys.exit(0)
 
 
+def parse_and_handle_command():
+    try:
+        line = sys.stdin.readline()
+
+        if not line:
+            print("STDIN EOF reached, shutting down server", flush=True)
+            sys.exit(0)
+
+        command_json = line.strip()
+        if not command_json:
+            return
+
+        command_data = json.loads(command_json)
+        command = command_data.get("command")
+
+        if command == "render":
+            handle_render(command_data)
+            print(f"ADAPTOR_STATUS=Success FRAME={str(command_data.get('frame'))}", flush=True)
+        elif command == "stop":
+            handle_stop()
+        else:
+            print(f"ADAPTOR_STATUS=Error Error=Unknown command: {command}", flush=True)
+
+    except Exception as e:
+        traceback.print_exc()
+        message = str(e).replace('"', '\\"')
+        print(f"ADAPTOR_STATUS=Error Error={message}", flush=True)
+
+
 def main() -> None:
     print("KeyShot server is ready", flush=True)
 
     while True:
-        try:
-            line = sys.stdin.readline()
-
-            if not line:
-                print("STDIN EOF reached, shutting down server", flush=True)
-                break
-
-            command_json = line.strip()
-            if not command_json:
-                continue
-
-            command_data = json.loads(command_json)
-            command = command_data.get("command")
-
-            if command == "render":
-                handle_render(command_data)
-            elif command == "stop":
-                handle_stop()
-            else:
-                print(f"ERROR: Unknown command: {command}", flush=True)
-
-        except Exception as e:
-            traceback.print_exc()
-            print(f"ERROR: {str(e)}", flush=True)
+        parse_and_handle_command()
 
 
 if __name__ == "__main__":
