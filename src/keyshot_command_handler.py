@@ -120,7 +120,7 @@ def handle_stop() -> None:
     sys.exit(0)
 
 
-def parse_and_handle_command():
+def parse_and_handle_command() -> None:
     try:
         line = sys.stdin.readline()
 
