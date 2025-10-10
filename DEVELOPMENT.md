@@ -74,12 +74,14 @@ The KeyShot submitter for Deadline Cloud is a single file `Submit to AWS Deadlin
 
 The submitter is built from multiple source files using the `build.py` script. To make changes:
 
-1. Modify the source files in `src/` (submitter.py, session_manager.py, keyshot_bridge.py, etc.)
-2. Run the build script to generate the final submitter file:
+1. **Configure KeyShot Python settings**: Deactivate KeyShot's "Use local Python paths" setting to prevent accidentally using Python libraries that KeyShot doesn't include. Open KeyShot's preferences, click **General**, then unselect the **Use local Python paths** option.
+
+2. Modify the source files in `src/` (submitter.py, session_manager.py, keyshot_bridge.py, etc.)
+3. Run the build script to generate the final submitter file:
    ```bash
    hatch run python src/build.py --output "/Library/Application Support/KeyShot Studio/Scripts/Submit to AWS Deadline Cloud.py"
    ```
-3. Test your changes by running the submitter in KeyShot
+4. Test your changes by running the submitter in KeyShot
 
 #### Running Tests
 

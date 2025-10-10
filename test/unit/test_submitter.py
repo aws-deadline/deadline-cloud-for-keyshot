@@ -531,7 +531,7 @@ def test_create_bundle_conda_parameters():
 def test_create_bundle_gpu_requirements():
     settings = submitter.Settings(
         parameter_values=[
-            {"name": "OverrideRenderDevice", "value": "TRUE"},  # Fix: use uppercase
+            {"name": "OverrideRenderDevice", "value": "True"},
             {"name": "RenderDevice", "value": "GPU"},
         ],
         input_filenames=[],

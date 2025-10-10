@@ -6,7 +6,6 @@
 import glob
 import json
 import os
-from pathlib import Path
 import platform
 import subprocess
 import tempfile
@@ -610,7 +609,7 @@ def create_bundle(
     override_param_found = False
     for param in settings.parameter_values:
         if param["name"] == "OverrideRenderDevice":
-            override_enabled = param["value"] == "TRUE"
+            override_enabled = param["value"] == "True"
             override_param_found = True
             break
     if not override_param_found:
@@ -650,17 +649,17 @@ def create_bundle(
     settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
 
     # Add adaptor scripts
-    scripts_dir = Path(bundle_dir) / "adaptor"
-    scripts_dir.mkdir(exist_ok=True)
+    scripts_dir = os.path.join(bundle_dir, "adaptor")
+    os.makedirs(scripts_dir, exist_ok=True)
 
     # Contents in the f.write calls will be replaced with the actual script contents by build.py
-    with open(scripts_dir / "session_manager.py", "w", encoding="utf-8") as f:
+    with open(os.path.join(scripts_dir, "session_manager.py"), "w", encoding="utf-8") as f:
         f.write("SESSION_MANAGER_SCRIPT")
-    with open(scripts_dir / "keyshot_bridge.py", "w", encoding="utf-8") as f:
+    with open(os.path.join(scripts_dir, "keyshot_bridge.py"), "w", encoding="utf-8") as f:
         f.write("KEYSHOT_BRIDGE_SCRIPT")
-    with open(scripts_dir / "keyshot_command_handler.py", "w", encoding="utf-8") as f:
+    with open(os.path.join(scripts_dir, "keyshot_command_handler.py"), "w", encoding="utf-8") as f:
         f.write("KEYSHOT_COMMAND_HANDLER_SCRIPT")
-    with open(scripts_dir / "task_manager.py", "w", encoding="utf-8") as f:
+    with open(os.path.join(scripts_dir, "task_manager.py"), "w", encoding="utf-8") as f:
         f.write("TASK_MANAGER_SCRIPT")
 
     job_template = construct_job_template(scene_name)
@@ -689,9 +688,9 @@ if __name__ == "__main__":
 
     # Check for --bundle flag for headless testing
     if len(sys.argv) >= 3 and sys.argv[1] == "--bundle":
-        bundle_path = Path(sys.argv[2]).resolve()
+        bundle_path = os.path.abspath(sys.argv[2])
         # Create directory if it doesn't exist
         os.makedirs(bundle_path, exist_ok=True)
-        main(show_gui=False, export_dir=str(bundle_path))
+        main(show_gui=False, export_dir=bundle_path)
     else:
         main()
