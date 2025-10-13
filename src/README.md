@@ -189,7 +189,7 @@ The adaptor uses a JSON-based command protocol for communication between compone
 
 ## Useful testing commands
 
-1. **Build and install the submiter**. Submitter is installed and ready to run in KeyShot. No restart needed.
+1. **Build and install the submitter**. Submitter is installed and ready to run in KeyShot. No restart needed.
 
 ```bash
 hatch run python src/build.py --output "/Library/Application Support/KeyShot Studio/Scripts/Submit to AWS Deadline Cloud.py"
