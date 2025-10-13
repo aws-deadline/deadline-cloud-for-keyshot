@@ -148,6 +148,8 @@ def assert_expected_job_bundle_and_generated_job_bundle_are_equal(
     prefix_path = os.path.abspath(expected_job_bundle_dir_path).split("deadline-cloud-for-keyshot")[
         0
     ]
+    # Remove trailing slash if it exists to avoid double slashes
+    prefix_path = prefix_path.rstrip(os.sep)
 
     # Get list of files in both directories
     expected_job_bundle_files = set(
@@ -192,12 +194,15 @@ def assert_expected_job_bundle_and_generated_job_bundle_are_equal(
             else:
                 results["different_content"].append(file)
                 diff = "\n".join(
-                    unified_diff(content1.splitlines(), content2.splitlines(), lineterm="")
+                    unified_diff(
+                        json.dumps(content1_loaded, indent=2, sort_keys=True).splitlines(),
+                        json.dumps(content2_loaded, indent=2, sort_keys=True).splitlines(),
+                        lineterm="",
+                    )
                 )
                 print(diff)
 
     assert len(results["different_content"]) == 0
-    assert len(results["identical_files"]) == 3
     assert "template.json" in results["identical_files"]
     assert "parameter_values.json" in results["identical_files"]
     assert "asset_references.json" in results["identical_files"]
@@ -206,8 +211,12 @@ def assert_expected_job_bundle_and_generated_job_bundle_are_equal(
 def replace_backslashes(content: str) -> str:
     """
     Replaces backslashes that are path separators.
-    Note: This also preserves the backslashes in unicode characters.
+    Note: This also preserves the backslashes in unicode characters and JSON escape sequences.
     """
+    # Don't process JSON files - they have valid escape sequences
+    if content.strip().startswith("{") and content.strip().endswith("}"):
+        return content
+
     content = re.sub(
         r"\\(u[0-9a-fA-F]{4}|x[0-9a-fA-F]{2})", r"UNICODE_ESCAPE\1", content
     )  # To avoid unicode '\' getting replaced

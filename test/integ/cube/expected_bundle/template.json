@@ -3,6 +3,18 @@
     "name": "scene",
     "parameterDefinitions": [
         {
+            "name": "AdaptorScriptsDir",
+            "description": "Directory containing adaptor scripts.",
+            "userInterface": {
+                "control": "HIDDEN"
+            },
+            "type": "PATH",
+            "objectType": "DIRECTORY",
+            "dataFlow": "IN",
+            "default": "adaptor",
+            "maxLength": 10000
+        },
+        {
             "name": "KeyShotFile",
             "type": "PATH",
             "objectType": "FILE",
@@ -13,7 +25,8 @@
                 "groupLabel": "KeyShot Settings"
             },
             "description": "The KeyShot package file to render.",
-            "default": ""
+            "default": "",
+            "maxLength": 10000
         },
         {
             "name": "Frames",
@@ -24,7 +37,8 @@
                 "groupLabel": "KeyShot Settings"
             },
             "description": "The frames to render e.g. 1-3,8,11-15",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 10000
         },
         {
             "name": "OutputFilePath",
@@ -36,7 +50,8 @@
                 "label": "Output File Path",
                 "groupLabel": "KeyShot Settings"
             },
-            "description": "The render output path."
+            "description": "The render output path.",
+            "maxLength": 10000
         },
         {
             "name": "OutputFormat",
@@ -64,10 +79,10 @@
             "type": "STRING",
             "description": "Whether to override the render device set in KeyShot.",
             "allowedValues": [
-                "TRUE",
-                "FALSE"
+                "True",
+                "False"
             ],
-            "default": "FALSE",
+            "default": "False",
             "userInterface": {
                 "control": "CHECK_BOX",
                 "label": "Override KeyShot render device",
@@ -117,26 +132,18 @@
                     "name": "KeyShot",
                     "description": "Runs KeyShot in the background.",
                     "script": {
-                        "embeddedFiles": [
-                            {
-                                "name": "initData",
-                                "filename": "init-data.yaml",
-                                "type": "TEXT",
-                                "data": "scene_file: '{{Param.KeyShotFile}}'\noutput_file_path: '{{Param.OutputFilePath}}'\noutput_format: 'RENDER_OUTPUT_{{Param.OutputFormat}}'\noverride_render_device: {{Param.OverrideRenderDevice}}\nrender_device: '{{Param.RenderDevice}}'\nrender_options: {add_to_queue: false, advanced_samples: 0, background_rendering: false, engine_anti_aliasing: 1, engine_caustics_quality: 0.0, engine_dof_quality: 3.0, engine_global_illumination: 0.0, engine_global_illumination_cache: true, engine_indirect_bounces: 1, engine_pixel_blur: 1.5, engine_ray_bounces: 6, engine_shadow_quality: 1.0, engine_sharp_shadows: true, engine_sharper_texture_filtering: false, engine_threads: 14, output_alpha_channel: false, output_ambient_occlusion_pass: false, output_caustics_pass: false, output_clown_pass: false, output_depth_pass: false, output_diffuse_pass: false, output_direct_lighting_pass: false, output_indirect_lighting_pass: false, output_labels_pass: false, output_normals_pass: false, output_raw_pass: false, output_reflection_pass: false, output_refraction_pass: false, output_render_layers: false, output_shadow_pass: false, progressive_max_samples: 0, progressive_max_time: 0.0, region: null, render_mode: 2, send_to_network: false, __VERSION: 5}\n"
-                            }
-                        ],
                         "actions": {
                             "onEnter": {
-                                "command": "keyshot-openjd",
+                                "command": "python",
                                 "args": [
-                                    "daemon",
+                                    "{{Param.AdaptorScriptsDir}}/session_manager.py",
                                     "start",
-                                    "--path-mapping-rules",
-                                    "file://{{Session.PathMappingRulesFile}}",
-                                    "--connection-file",
-                                    "{{Session.WorkingDirectory}}/connection.json",
-                                    "--init-data",
-                                    "file://{{Env.File.initData}}"
+                                    "--scene-file",
+                                    "{{Param.KeyShotFile}}",
+                                    "--keyshot-command-handler-script",
+                                    "{{Param.AdaptorScriptsDir}}/keyshot_command_handler.py",
+                                    "--keyshot-bridge-script",
+                                    "{{Param.AdaptorScriptsDir}}/keyshot_bridge.py"
                                 ],
                                 "cancelation": {
                                     "mode": "NOTIFY_THEN_TERMINATE"
@@ -144,12 +151,10 @@
                                 "timeout": 390
                             },
                             "onExit": {
-                                "command": "keyshot-openjd",
+                                "command": "python",
                                 "args": [
-                                    "daemon",
-                                    "stop",
-                                    "--connection-file",
-                                    "{{ Session.WorkingDirectory }}/connection.json"
+                                    "{{Param.AdaptorScriptsDir}}/session_manager.py",
+                                    "stop"
                                 ],
                                 "cancelation": {
                                     "mode": "NOTIFY_THEN_TERMINATE"
@@ -161,24 +166,23 @@
                 }
             ],
             "script": {
-                "embeddedFiles": [
-                    {
-                        "name": "runData",
-                        "filename": "run-data.yaml",
-                        "type": "TEXT",
-                        "data": "frame: {{Task.Param.Frame}}\n"
-                    }
-                ],
                 "actions": {
                     "onRun": {
-                        "command": "keyshot-openjd",
+                        "command": "python",
                         "args": [
-                            "daemon",
-                            "run",
-                            "--connection-file",
-                            "{{ Session.WorkingDirectory }}/connection.json",
-                            "--run-data",
-                            "file://{{ Task.File.runData }}"
+                            "{{Param.AdaptorScriptsDir}}/task_manager.py",
+                            "--frame",
+                            "{{Task.Param.Frame}}",
+                            "--output-path",
+                            "{{Param.OutputFilePath}}",
+                            "--output-format",
+                            "{{Param.OutputFormat}}",
+                            "--render-device",
+                            "{{Param.RenderDevice}}",
+                            "--override-render-device",
+                            "{{Param.OverrideRenderDevice}}",
+                            "--render-options",
+                            "{\"add_to_queue\": false, \"advanced_samples\": 0, \"background_rendering\": false, \"engine_anti_aliasing\": 1, \"engine_caustics_quality\": 0.0, \"engine_dof_quality\": 3.0, \"engine_global_illumination\": 0.0, \"engine_global_illumination_cache\": true, \"engine_indirect_bounces\": 1, \"engine_pixel_blur\": 1.5, \"engine_ray_bounces\": 6, \"engine_shadow_quality\": 1.0, \"engine_sharp_shadows\": true, \"engine_sharper_texture_filtering\": false, \"engine_threads\": 12, \"output_alpha_channel\": false, \"output_ambient_occlusion_pass\": false, \"output_caustics_pass\": false, \"output_clown_pass\": false, \"output_depth_pass\": false, \"output_diffuse_pass\": false, \"output_direct_lighting_pass\": false, \"output_indirect_lighting_pass\": false, \"output_labels_pass\": false, \"output_normals_pass\": false, \"output_raw_pass\": false, \"output_reflection_pass\": false, \"output_refraction_pass\": false, \"output_render_layers\": false, \"output_shadow_pass\": false, \"progressive_max_samples\": 8, \"progressive_max_time\": 0.0, \"region\": null, \"render_mode\": 2, \"send_to_network\": false, \"__VERSION\": 5}"
                         ],
                         "cancelation": {
                             "mode": "NOTIFY_THEN_TERMINATE"

@@ -2,17 +2,16 @@
 import json
 import os
 import shutil
+import sys
 import tempfile
 from unittest import mock
 
 import pytest
 
-from .. import lux_import_override  # noqa F401
-
-# We can't use traditional imports due to spaces in the file name.
-# The spaces are necessary because KeyShot uses the file name as the script name.
-deadline = __import__("deadline.keyshot_submitter.Submit to AWS Deadline Cloud")
-submitter = getattr(deadline.keyshot_submitter, "Submit to AWS Deadline Cloud")
+# Add src directory to path to import submitter
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
+from . import lux_import_override  # noqa F401
+import submitter
 
 RENDER_ENGINE_PRODUCT = 0
 RENDER_ENGINE_INTERIOR = 1
@@ -353,11 +352,11 @@ def test_error_if_export_dir_but_also_gui():
 
 
 def test_save_ksp_bundle(mock_lux_save_package):
-    dir = os.path.normpath("/testdir/test")
+    test_dir = os.path.normpath("/testdir/test")
     bundle_name = "test_bundle.ksp"
-    expected_bundle_path = os.path.normpath(f"{dir}/{bundle_name}")
+    expected_bundle_path = os.path.normpath(f"{test_dir}/{bundle_name}")
 
-    output = submitter.save_ksp_bundle(dir, bundle_name)
+    output = submitter.save_ksp_bundle(test_dir, bundle_name)
 
     assert output == expected_bundle_path
     mock_lux_save_package.assert_called_once_with(path=expected_bundle_path)
@@ -429,3 +428,198 @@ def test_construct_job_template_includes_render_device_parameter():
         assert render_device_param_gpu is not None
         assert render_device_param_gpu["default"] == "GPU"
         assert render_device_param_gpu["allowedValues"] == ["CPU", "GPU"]
+
+
+def test_substitute_suffix():
+    assert submitter.substitute_suffix("scene.bip", ".json") == "scene.json"
+    assert (
+        submitter.substitute_suffix("/path/to/scene.bip", ".settings") == "/path/to/scene.settings"
+    )
+    assert submitter.substitute_suffix("scene", ".ext") == "scene.ext"
+
+
+def test_get_current_render_device():
+    with mock.patch.object(submitter.lux, "getRenderEngine") as get_render_engine_mock:
+        submitter.lux.RENDER_ENGINE_PRODUCT_GPU = RENDER_ENGINE_PRODUCT_GPU
+        submitter.lux.RENDER_ENGINE_INTERIOR_GPU = RENDER_ENGINE_INTERIOR_GPU
+
+        get_render_engine_mock.return_value = RENDER_ENGINE_PRODUCT
+        assert submitter.get_current_render_device() == "CPU"
+
+        get_render_engine_mock.return_value = RENDER_ENGINE_PRODUCT_GPU
+        assert submitter.get_current_render_device() == "GPU"
+
+        get_render_engine_mock.return_value = RENDER_ENGINE_INTERIOR_GPU
+        assert submitter.get_current_render_device() == "GPU"
+
+
+def test_load_sticky_settings():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        scene_file = os.path.join(temp_dir, "scene.bip")
+        settings_file = os.path.join(temp_dir, "scene.deadline_render_settings.json")
+
+        # Test non-existent file
+        assert submitter.load_sticky_settings(scene_file) is None
+
+        # Test valid settings file
+        test_settings = {"parameterValues": [{"name": "Frames", "value": "1-10"}]}
+        with open(settings_file, "w", encoding="utf8") as f:
+            json.dump(test_settings, f)
+
+        result = submitter.load_sticky_settings(scene_file)
+        assert result == test_settings
+
+
+def test_save_sticky_settings():
+    settings = submitter.Settings(
+        parameter_values=[{"name": "Frames", "value": "1-5"}],
+        input_filenames=["test.png"],
+        auto_detected_input_filenames=[],
+        input_directories=[],
+        output_directories=[],
+        referenced_paths=[],
+    )
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        scene_file = os.path.join(temp_dir, "scene.bip")
+        submitter.save_sticky_settings(scene_file, settings)
+
+        settings_file = os.path.join(temp_dir, "scene.deadline_render_settings.json")
+        assert os.path.exists(settings_file)
+
+        with open(settings_file, "r", encoding="utf8") as f:
+            saved_data = json.load(f)
+
+        assert saved_data["parameterValues"] == [{"name": "Frames", "value": "1-5"}]
+        assert saved_data["inputFilenames"] == ["test.png"]
+
+
+def test_create_bundle_conda_parameters():
+    settings = submitter.Settings(
+        parameter_values=[],
+        input_filenames=[],
+        auto_detected_input_filenames=[],
+        input_directories=[],
+        output_directories=[],
+        referenced_paths=[],
+    )
+
+    with tempfile.TemporaryDirectory() as bundle_dir:
+        with mock.patch.object(submitter.lux, "getKeyShotDisplayVersion", return_value=(2024, 1)):
+            submitter.create_bundle(
+                settings,
+                {"submission_mode": [1, "Only the scene BIP file"]},
+                "scene.bip",
+                "scene",
+                bundle_dir,
+            )
+
+        # Check conda parameters were added
+        conda_packages = next(
+            (p for p in settings.parameter_values if p["name"] == "CondaPackages"), None
+        )
+        conda_channels = next(
+            (p for p in settings.parameter_values if p["name"] == "CondaChannels"), None
+        )
+
+        assert conda_packages is not None
+        assert conda_packages["value"] == "keyshot=2024.*"
+        assert conda_channels is not None
+        assert conda_channels["value"] == "deadline-cloud"
+
+
+def test_create_bundle_gpu_requirements():
+    settings = submitter.Settings(
+        parameter_values=[
+            {"name": "OverrideRenderDevice", "value": "True"},
+            {"name": "RenderDevice", "value": "GPU"},
+        ],
+        input_filenames=[],
+        auto_detected_input_filenames=[],
+        input_directories=[],
+        output_directories=[],
+        referenced_paths=[],
+    )
+
+    with tempfile.TemporaryDirectory() as bundle_dir:
+        with mock.patch.object(submitter.lux, "getKeyShotDisplayVersion", return_value=(2024, 1)):
+            submitter.create_bundle(
+                settings,
+                {"submission_mode": [1, "Only the scene BIP file"]},
+                "scene.bip",
+                "scene",
+                bundle_dir,
+            )
+
+        # Check job template has GPU requirements
+        with open(os.path.join(bundle_dir, "template.json"), "r", encoding="utf-8") as f:
+            template = json.load(f)
+
+        amounts = template["steps"][0]["hostRequirements"].get("amounts", [])
+        gpu_requirement = next((a for a in amounts if a["name"] == "amount.worker.gpu"), None)
+
+        assert gpu_requirement is not None
+        assert gpu_requirement["min"] == 1
+
+
+def test_create_bundle_adaptor_scripts():
+    settings = submitter.Settings(
+        parameter_values=[],
+        input_filenames=[],
+        auto_detected_input_filenames=[],
+        input_directories=[],
+        output_directories=[],
+        referenced_paths=[],
+    )
+
+    with tempfile.TemporaryDirectory() as bundle_dir:
+        with mock.patch.object(submitter.lux, "getKeyShotDisplayVersion", return_value=(2024, 1)):
+            submitter.create_bundle(
+                settings,
+                {"submission_mode": [1, "Only the scene BIP file"]},
+                "scene.bip",
+                "scene",
+                bundle_dir,
+            )
+
+        # Check adaptor scripts were created
+        scripts_dir = os.path.join(bundle_dir, "adaptor")
+        assert os.path.exists(os.path.join(scripts_dir, "session_manager.py"))
+        assert os.path.exists(os.path.join(scripts_dir, "keyshot_bridge.py"))
+        assert os.path.exists(os.path.join(scripts_dir, "keyshot_command_handler.py"))
+        assert os.path.exists(os.path.join(scripts_dir, "task_manager.py"))
+
+
+def test_options_dialog_headless():
+    result = submitter.options_dialog(show_gui=False)
+    expected = {"submission_mode": [0, "The scene BIP file and all external files references"]}
+    assert result == expected
+
+
+def test_create_bundle_render_device_logic():
+    # Test override disabled - should use current device
+    settings = submitter.Settings(
+        parameter_values=[{"name": "OverrideRenderDevice", "value": "False"}],
+        input_filenames=[],
+        auto_detected_input_filenames=[],
+        input_directories=[],
+        output_directories=[],
+        referenced_paths=[],
+    )
+
+    with tempfile.TemporaryDirectory() as bundle_dir:
+        with mock.patch.object(submitter.lux, "getKeyShotDisplayVersion", return_value=(2024, 1)):
+            with mock.patch.object(submitter, "get_current_render_device", return_value="GPU"):
+                submitter.create_bundle(
+                    settings,
+                    {"submission_mode": [1, "Only the scene BIP file"]},
+                    "scene.bip",
+                    "scene",
+                    bundle_dir,
+                )
+
+        render_device = next(
+            (p for p in settings.parameter_values if p["name"] == "RenderDevice"), None
+        )
+        assert render_device is not None
+        assert render_device["value"] == "GPU"

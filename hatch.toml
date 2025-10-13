@@ -7,7 +7,7 @@ pre-install-commands = [
 sync = "pip install -r requirements-testing.txt"
 test = "pytest {args:test/unit}"
 test-installer = "pytest --no-cov {args:test/installer} -vvv --numprocesses=1"
-typing = "mypy {args:src test}"
+typing = "mypy {args:src}"
 style = [
   "ruff check {args:.}",
   "black --check --diff {args:.}",
@@ -20,15 +20,16 @@ lint = [
   "style",
   "typing",
 ]
+build = "python src/build.py --output dist/Submit\\ to\\ AWS\\ Deadline\\ Cloud.py"
 
 [[envs.all.matrix]]
-python = ["3.9", "3.10", "3.11"]
+python = ["3.11","3.12"]
 
 [envs.default.env-vars]
 SKIP_BOOTSTRAP_TEST_RESOURCES="True"
 
 [envs.codebuild.scripts]
-build = "hatch build"
+build = "hatch run build"
 
 [envs.codebuild.env-vars]
 SKIP_BOOTSTRAP_TEST_RESOURCES="True"

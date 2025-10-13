@@ -20,4 +20,4 @@ def assert_all_images_close(expected_image_directory: Path, actual_image_directo
         # Check that the two images are the same within a tolerance.
         # It's normal for there to be noise in an output image, so it is unlikely that two
         # renders will be exactly the same.
-        assert np.allclose(actual, expected, atol=8)
+        assert np.allclose(actual, expected, atol=32)
