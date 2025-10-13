@@ -1,3 +1,12 @@
+## 1.0.0 (2025-10-13)
+
+
+### Features
+* Support KeyShot 2025, remove dependency on adapter package (#238) ([`9e8745b`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/9e8745bcee808d0bab8bea341e5464a7b21b784a))
+
+### Bug Fixes
+* update version bump action with new submitter path (#251) ([`44557a4`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/44557a4b7cfc1e3f5aa233be19d2491cdd616228))
+
 ## 0.4.3 (2025-07-10)
 
 
