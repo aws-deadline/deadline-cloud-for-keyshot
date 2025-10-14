@@ -1,10 +1,4 @@
-## 1.0.1 (2025-10-14)
-
-
-
-
-## 1.0.0 (2025-10-13)
-
+## 0.5.0 (2025-10-14)
 
 ### Breaking changes
 This integration no longer requires or includes the `deadline-cloud-for-keyshot ` adaptor package. Instead, the adaptor is packaged with each job submission. The old adaptor will continue to be available in Deadline Cloud's service managed fleets for a short period of time to ensure installs of the old submitter continue to work, but users should upgrade to the new submitter as soon as they are able to. The updated integration supports KeyShot versions 2023, 2024, and 2025.
@@ -13,6 +7,7 @@ This integration no longer requires or includes the `deadline-cloud-for-keyshot 
 * Support KeyShot 2025, remove dependency on adapter package (#238) ([`9e8745b`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/9e8745bcee808d0bab8bea341e5464a7b21b784a))
 
 ### Bug Fixes
+* update submitter path for installer, add instructions (#256) ([`17ec249`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/17ec24917ed5dc4c0328d6da13135e2b683f56fe))
 * update version bump action with new submitter path (#251) ([`44557a4`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/44557a4b7cfc1e3f5aa233be19d2491cdd616228))
 
 ## 0.4.3 (2025-07-10)
