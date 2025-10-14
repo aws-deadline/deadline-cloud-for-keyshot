@@ -1,3 +1,10 @@
+## 1.1.0 (2025-10-14)
+
+
+
+### Bug Fixes
+* update submitter path for installer, add instructions (#256) ([`17ec249`](https://github.com/aws-deadline/deadline-cloud-for-keyshot/commit/17ec24917ed5dc4c0328d6da13135e2b683f56fe))
+
 ## 1.0.1 (2025-10-14)
 
 
