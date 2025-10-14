@@ -108,5 +108,14 @@ To run the integration tests:
 
 The user guide is generated from the markdown files in `docs/user_guide` and published to GitHub pages. To view the renderd user guide locally, run `hatch run docs:serve` which will open the user guide in your browser.
 
+## Testing the installer
+
+1. Download the install builder tool from https://installbuilder.com/ (Evaluation)
+2. Run `hatch build`
+3. Run `hatch run installer:build-installer --local-dev`
+4. Installer should be built under the installer sub-folder.
+5. Double click on the built installer to run it.
+
+
 ## Relevant links
 - [Keyshot 2024 scripting documentation](https://media.keyshot.com/scripting/doc/2024.1/lux.html)
