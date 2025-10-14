@@ -1,6 +1,6 @@
 <component>
     <name>deadline_cloud_for_keyshot</name>
-    <description>Deadline Cloud for KeyShot 2023-2024</description>
+    <description>Deadline Cloud for KeyShot 2023-2025</description>
     <detailedDescription>KeyShot plugin for submitting jobs to AWS Deadline Cloud.</detailedDescription>
     <canBeEdited>1</canBeEdited>
     <selected>0</selected>
@@ -13,7 +13,7 @@
             <platforms>all</platforms>
             <distributionFileList>
                 <distributionFile>
-                    <origin>../src/deadline/keyshot_submitter/Submit to AWS Deadline Cloud.py</origin>
+                    <origin>../dist/Submit to AWS Deadline Cloud.py</origin>
                 </distributionFile>
             </distributionFileList>
         </folder>
