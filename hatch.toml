@@ -20,7 +20,7 @@ lint = [
   "style",
   "typing",
 ]
-build = "python src/build.py --output dist/Submit\\ to\\ AWS\\ Deadline\\ Cloud.py"
+build = 'python src/build.py --output "dist/Submit to AWS Deadline Cloud.py"'
 
 [[envs.all.matrix]]
 python = ["3.11","3.12"]
