@@ -26,7 +26,9 @@ classifiers = [
   "Intended Audience :: End Users/Desktop"
 ]
 
-dependencies = []
+dependencies = [
+  "boto3",
+]
 
 [project.urls]
 Homepage = "https://github.com/aws-deadline/deadline-cloud-for-keyshot"
