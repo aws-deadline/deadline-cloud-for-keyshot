@@ -58,17 +58,8 @@ jobs:
       environment: release
       project_name: ${{ github.event.repository.name }}
 
-  Publish:
-      needs: [TagRelease, BuildInstaller]
-      uses: aws-deadline/.github/.github/workflows/reusable_publish_python.yml@mainline
-      permissions:
-        id-token: write
-      secrets: inherit
-      with:
-          tag: ${{ needs.TagRelease.outputs.tag }}
-
   ReleaseInstaller:
-    needs: [TagRelease]
+    needs: [TagRelease, BuildInstaller]
     uses: aws-deadline/.github/.github/workflows/reusable_release_installers.yml@mainline
     secrets: inherit
     permissions:

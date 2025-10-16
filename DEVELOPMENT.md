@@ -111,7 +111,7 @@ The user guide is generated from the markdown files in `docs/user_guide` and pub
 ## Testing the installer
 
 1. Download the install builder tool from https://installbuilder.com/ (Evaluation)
-2. Run `hatch build`
+2. Run `hatch run build`
 3. Run `hatch run installer:build-installer --local-dev`
 4. Installer should be built under the installer sub-folder.
 5. Double click on the built installer to run it.
