@@ -2,7 +2,7 @@ black == 25.*
 coverage[toml] == 7.*
 mypy == 1.*
 numpy == 2.*  # for linting and integ tests
-pillow == 11.*  # for linting and integ tests
+pillow == 12.*  # for linting and integ tests
 pytest == 8.*
 pytest-asyncio == 0.*
 pytest-cov == 7.*
