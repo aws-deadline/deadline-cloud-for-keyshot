@@ -45,7 +45,7 @@ For development or testing purposes, you can manually install the submitter:
 
 1. Install dependencies: `pip install "deadline[gui]"`
 2. Copy `src/deadline/keyshot_submitter/Submit to AWS Deadline Cloud.py` to the KeyShot scripts folder:
-    - Windows: `%USERPROFILE%/Documents/KeyShot/Scripts` or `%PROGRAMFILES%/KeyShot/Scripts`
+    - Windows: `%USERPROFILE%/Documents/KeyShot Studio/Scripts` or `%PROGRAMFILES%/KeyShot Studio/Scripts`
     - macOS: `/Library/Application Support/KeyShot12/` or `/Library/Application Support/KeyShot/`
 3. Launch KeyShot and access via `Window > Scripting Console > Scripts > Submit to AWS Deadline Cloud > Run`
 
