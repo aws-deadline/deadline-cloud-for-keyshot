@@ -104,10 +104,6 @@ To run the integration tests:
 1. Ensure licensing is available on your machine for KeyShot
 1. Run `hatch run integ:test`
 
-## User guide
-
-The user guide is generated from the markdown files in `docs/user_guide` and published to GitHub pages. To view the renderd user guide locally, run `hatch run docs:serve` which will open the user guide in your browser.
-
 ## Testing the installer
 
 1. Download the install builder tool from https://installbuilder.com/ (Evaluation)
