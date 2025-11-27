@@ -25,15 +25,6 @@ build = 'python src/build.py --output "dist/Submit to AWS Deadline Cloud.py"'
 [[envs.all.matrix]]
 python = ["3.11","3.12"]
 
-[envs.default.env-vars]
-SKIP_BOOTSTRAP_TEST_RESOURCES="True"
-
-[envs.codebuild.scripts]
-build = "hatch run build"
-
-[envs.codebuild.env-vars]
-SKIP_BOOTSTRAP_TEST_RESOURCES="True"
-
 [envs.integ]
 pre-install-commands = [
   "pip install -r requirements-integ-testing.txt",
