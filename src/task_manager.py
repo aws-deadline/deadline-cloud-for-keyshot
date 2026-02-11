@@ -20,7 +20,6 @@ import sys
 import time
 from pathlib import Path
 
-
 SESSION_INFO_FILE = "keyshot_session_info.json"
 TASK_TIMEOUT_SECONDS = 24 * 60 * 60  # 24 hours
 

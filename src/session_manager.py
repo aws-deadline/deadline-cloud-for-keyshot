@@ -18,7 +18,6 @@ import sys
 import time
 from pathlib import Path
 
-
 SESSION_INFO_FILE = "keyshot_session_info.json"
 MAX_PORT_DISCOVERY_ATTEMPTS = 100
 STARTUP_TIMEOUT_SECONDS = 15 * 60  # 15 minutes. Leaves time to open a large scene.

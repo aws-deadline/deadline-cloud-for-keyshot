@@ -11,7 +11,6 @@ import sys
 import traceback
 import lux  # noqa: F401
 
-
 ENGINE_NAMES = {
     0: "RENDER_ENGINE_PRODUCT",
     1: "RENDER_ENGINE_INTERIOR",
