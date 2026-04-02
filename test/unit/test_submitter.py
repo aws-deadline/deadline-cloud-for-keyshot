@@ -525,7 +525,7 @@ def test_create_bundle_conda_parameters():
         assert conda_packages is not None
         assert conda_packages["value"] == "keyshot=2024.*"
         assert conda_channels is not None
-        assert conda_channels["value"] == "deadline-cloud"
+        assert conda_channels["value"] == ""
 
 
 def test_create_bundle_gpu_requirements():

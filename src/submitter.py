@@ -646,7 +646,7 @@ def create_bundle(
             "value": f"keyshot={major_version}.*",
         }
     )
-    settings.parameter_values.append({"name": "CondaChannels", "value": "deadline-cloud"})
+    settings.parameter_values.append({"name": "CondaChannels", "value": ""})
 
     # Add adaptor scripts
     scripts_dir = os.path.join(bundle_dir, "adaptor")

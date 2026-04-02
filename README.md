@@ -7,8 +7,6 @@ AWS Deadline Cloud for KeyShot is a Python plugin that allows users to create [A
 ![Screenshot of the KeyShot submitter](./docs/user_guide/images/main-screenshot.png)
 
 [deadline-cloud]: https://docs.aws.amazon.com/deadline-cloud/latest/userguide/what-is-deadline-cloud.html
-[default-queue-environment]: https://docs.aws.amazon.com/deadline-cloud/latest/userguide/create-queue-environment.html#conda-queue-environment
-[usage-based-licensing]: https://aws.amazon.com/deadline-cloud/features/
 [user-guide]: https://aws-deadline.github.io/keyshot/user-guide/
 
 ## User guide
@@ -22,8 +20,7 @@ For installation and usage instructions, see the [AWS Deadline Cloud integration
 
 - KeyShot 2023 - 2025
 - Windows or macOS workstation for job submission
-- Windows worker for job rendering
-- Deadline Cloud queue with job attachments enabled and the [default queue environment][default-queue-environment]
+- Windows worker for job rendering with KeyShot Studio installed and licensed
 
 ## Architecture
 
@@ -49,19 +46,9 @@ For development or testing purposes, you can manually install the submitter:
     - macOS: `/Library/Application Support/KeyShot12/` or `/Library/Application Support/KeyShot/`
 3. Launch KeyShot and access via `Window > Scripting Console > Scripts > Submit to AWS Deadline Cloud > Run`
 
-## Worker Licensing for KeyShot
+## Worker Setup for KeyShot
 
-### Service-Managed Fleets
-
-[Usage based licensing][usage-based-licensing] for KeyShot 2023 and 2024 is available on Deadline Cloud service-managed fleets with no additional setup.
-
-If you prefer to use your own licensing for service-managed fleets, you can also [connect service-managed fleets to a custom license server](https://docs.aws.amazon.com/deadline-cloud/latest/developerguide/smf-byol.html).
-
-### Customer-Managed Fleets
-
-You can use [usage based licensing][usage-based-licensing] on customer-managed fleets by [connecting them to a license endpoint](https://docs.aws.amazon.com/deadline-cloud/latest/developerguide/cmf-ubl.html).
-
-You can also use your own licensing for customer-managed fleets.
+To run KeyShot jobs on Deadline Cloud, workers must have KeyShot Studio installed and licensed. You can create a KeyShot conda package for your fleet using the [sample in the deadline-cloud-samples repository](https://github.com/aws-deadline/deadline-cloud-samples).
 
 > [!NOTE]  
 > The KeyShot adaptor uses TCP ports in the range 9000-9099 for internal communication during rendering. These ports only listen on the loopback interface (127.0.0.1) and do not require network access.
