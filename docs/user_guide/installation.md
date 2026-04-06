@@ -7,9 +7,7 @@ Before you begin, make sure you have:
 - A Windows or MacOS workstation
 - KeyShot Studio 2023 - 2025
 - [Deadline Cloud monitor](https://docs.aws.amazon.com/deadline-cloud/latest/userguide/monitor-onboarding.html) installed
-- Access to an AWS Deadline Cloud farm with either
-    - a Windows service-managed fleet or
-    - a customer-managed fleet with KeyShot Studio and licensing set up
+- Access to an AWS Deadline Cloud farm with a fleet that has KeyShot Studio installed and licensed
 
 ## Installing the submitter
 

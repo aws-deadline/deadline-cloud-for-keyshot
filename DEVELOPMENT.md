@@ -31,8 +31,7 @@ To develop the Python code in this repository you will need:
 2. The [hatch](https://github.com/pypa/hatch) package installed (`pip install --upgrade hatch`) into your Python environment.
 3. An install of a supported version of Keyshot.
 4. A valid AWS Account.
-5. An AWS Deadline Cloud Farm to run jobs on. We recommend following the quickstart in the Deadline Cloud console to create a
-   queue with the default queue environment, and a service-managed fleet.
+5. An AWS Deadline Cloud Farm to run jobs on with a fleet that has KeyShot Studio installed and licensed.
 
 Development on a Windows or Mac workstation is supported. Linux development support is experimental.
 

@@ -30,7 +30,7 @@
         },
         {
             "name": "CondaChannels",
-            "value": "deadline-cloud"
+            "value": ""
         }
     ]
 }

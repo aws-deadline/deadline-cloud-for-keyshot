@@ -45,7 +45,6 @@ Configure your render settings:
 ![Submitter Interface](./images/shared-job-settings.png)
    - **Job Name**: Give your job a descriptive name
    - **If you are using the submitter for the first time**, you may need to set your farm and queue. To set them, click the **Settings** button.
-   - **If you're using KeyShot 2023**, Deadline Cloud service-managed fleets have built-in support for KeyShot Studio 2024 - 2025 only. If you're using KeyShot 2023 for submission, you can still render on KeyShot Studio 2024 or 2025 by specifying a supported KeyShot version (e.g. `keyshot=2024.*`) in the **Conda Packages** input.
 
 2. **Job-specific settings**
 ![Submitter Interface](./images/job-specific-settings.png)
