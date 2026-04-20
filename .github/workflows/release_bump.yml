@@ -28,6 +28,7 @@ jobs:
     needs: UnitTests
     uses: aws-deadline/.github/.github/workflows/reusable_bump.yml@mainline
     permissions:
+      id-token: write
       contents: write
       pull-requests: write
     secrets: inherit
