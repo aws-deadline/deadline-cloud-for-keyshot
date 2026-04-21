@@ -34,6 +34,13 @@ jobs:
     with:
       tag: ${{ needs.TagRelease.outputs.tag }}
 
+  ManualTestGate:
+    needs: [TagRelease, BuildInstaller]
+    runs-on: ubuntu-latest
+    environment: release-gate
+    steps:
+      - run: echo "Manual testing approved for ${{ needs.TagRelease.outputs.tag }}"
+
   PreRelease:
       needs: [TagRelease, UnitTests]
       uses: aws-deadline/.github/.github/workflows/reusable_prerelease.yml@mainline
@@ -59,7 +66,7 @@ jobs:
       project_name: ${{ github.event.repository.name }}
 
   ReleaseInstaller:
-    needs: [TagRelease, BuildInstaller]
+    needs: [TagRelease, BuildInstaller, ManualTestGate]
     uses: aws-deadline/.github/.github/workflows/reusable_release_installers.yml@mainline
     secrets: inherit
     permissions:
