@@ -1,6 +1,6 @@
 black == 26.*
 coverage[toml] == 7.*
-mypy == 1.*
+mypy == 2.*
 numpy == 2.*  # for linting and integ tests
 pillow == 12.*  # for linting and integ tests
 pytest == 9.*
