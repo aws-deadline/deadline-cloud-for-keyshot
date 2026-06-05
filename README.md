@@ -1,13 +1,11 @@
 # AWS Deadline Cloud for KeyShot
 
-### [User guide](https://aws-deadline.github.io/) | [Service documentation](https://docs.aws.amazon.com/deadline-cloud/) | [Deadline Cloud on GitHub](https://github.com/aws-deadline/) 
+### [User guide](https://docs.aws.amazon.com/deadline-cloud/latest/userguide/keyshot.html) | [Service documentation](https://docs.aws.amazon.com/deadline-cloud/) | [Deadline Cloud on GitHub](https://github.com/aws-deadline/) 
 
 AWS Deadline Cloud for KeyShot is a Python plugin that allows users to create [AWS Deadline Cloud][deadline-cloud] jobs from within KeyShot.
 
-![Screenshot of the KeyShot submitter](./docs/user_guide/images/main-screenshot.png)
-
 [deadline-cloud]: https://docs.aws.amazon.com/deadline-cloud/latest/userguide/what-is-deadline-cloud.html
-[user-guide]: https://aws-deadline.github.io/keyshot/user-guide/
+[user-guide]: https://docs.aws.amazon.com/deadline-cloud/latest/userguide/keyshot.html
 
 ## User guide
 
@@ -73,7 +71,7 @@ See [CONTRIBUTING](https://github.com/aws-deadline/deadline-cloud-for-keyshot/bl
 
 ## Telemetry
 
-See [telemetry](https://github.com/aws-deadline/deadline-cloud-for-keyshot/blob/release/docs/telemetry.md) for more information.
+See [telemetry](https://docs.aws.amazon.com/deadline-cloud/latest/userguide/opt-out.html) for more information.
 
 ## License
 
