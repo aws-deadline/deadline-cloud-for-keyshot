@@ -8,6 +8,9 @@ runs:
   steps:
   - name: Update plugin Version
     shell: bash
+    env:
+      # Pass input via env, not inline ${{ }}, to avoid template injection.
+      SEMVER: ${{ inputs.semver }}
     run: |
-      sed -i "s/^# VERSION.*/# VERSION ${{inputs.semver}}/" ./src/submitter.py
+      sed -i "s/^# VERSION.*/# VERSION $SEMVER/" ./src/submitter.py
       git add ./src/submitter.py 
