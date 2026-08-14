@@ -10,4 +10,4 @@ pytest-xdist == 3.*
 pywin32 ; sys_platform == 'win32'
 ruff == 0.16.*
 types-pyyaml == 6.*
-twine == 6.*
+twine == 7.*
