@@ -61,12 +61,11 @@ class Settings:
         for param in input_parameter_values:
             if param.get("name") and param.get("value"):
                 # Don't re-use KeyShotFile or AdaptorScriptsDir, they are in a new temp dir for every submission
-                # Don't preserve conda settings so the Keyshot version can be updated by updating the submitter
+                # Don't preserve CondaPackages so the Keyshot version can be updated by updating the submitter
                 if param["name"] in [
                     "KeyShotFile",
                     "AdaptorScriptsDir",
                     "CondaPackages",
-                    "CondaChannels",
                 ]:
                     continue
                 updated_parameter_values[param["name"]] = param["value"]
@@ -638,7 +637,8 @@ def create_bundle(
             render_device = get_current_render_device()
             settings.parameter_values.append({"name": "RenderDevice", "value": render_device})
 
-    # Add default values for Conda
+    # Add default value for CondaPackages. Deadline Cloud does not provide a KeyShot conda package, so
+    # CondaChannels is left to the queue environment so it can point at the channel hosting your own package.
     major_version, _minor_version = lux.getKeyShotDisplayVersion()
     settings.parameter_values.append(
         {
@@ -646,7 +646,6 @@ def create_bundle(
             "value": f"keyshot={major_version}.*",
         }
     )
-    settings.parameter_values.append({"name": "CondaChannels", "value": ""})
 
     # Add adaptor scripts
     scripts_dir = os.path.join(bundle_dir, "adaptor")

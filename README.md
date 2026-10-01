@@ -9,10 +9,15 @@ AWS Deadline Cloud for KeyShot is a Python plugin that allows users to create [A
 
 ## User guide
 
-For installation and usage instructions, see the [AWS Deadline Cloud integrations user guide][user-guide]. The user guide covers:
-- Installing the KeyShot submitter on Windows and macOS
+For usage instructions, see the [AWS Deadline Cloud integrations user guide][user-guide]. The user guide covers:
 - Submitting rendering jobs to Deadline Cloud
 - Configuring job settings and render options
+
+> [!IMPORTANT]
+> The KeyShot submitter is no longer included in the Deadline Cloud submitter installer, and Deadline Cloud no
+> longer provides a KeyShot conda package for service-managed fleets. Install the submitter manually (see
+> [Installation](#installation)) and provide your own KeyShot conda package for workers (see
+> [Worker Setup for KeyShot](#worker-setup-for-keyshot)).
 
 ## Requirements
 
@@ -34,15 +39,23 @@ See the [ARCHITECTURE.md](ARCHITECTURE.md) for more details.
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for instructions on setting up a development environment.
 
-## Manual Installation (Development/Testing)
+## Installation
 
-For development or testing purposes, you can manually install the submitter:
+The submitter is installed manually on each workstation that submits jobs:
 
-1. Install dependencies: `pip install "deadline[gui]"`
-2. Copy `src/deadline/keyshot_submitter/Submit to AWS Deadline Cloud.py` to the KeyShot scripts folder:
+1. Install the Deadline Cloud CLI with GUI support so that `deadline` is on your `PATH`: `pip install "deadline[gui]"`
+2. Build the submitter script from a clone of this repository:
+    ```sh
+    git clone https://github.com/aws-deadline/deadline-cloud-for-keyshot.git
+    cd deadline-cloud-for-keyshot
+    pip install hatch
+    hatch run build
+    ```
+    This writes the self-contained submitter to `dist/Submit to AWS Deadline Cloud.py`.
+3. Copy `dist/Submit to AWS Deadline Cloud.py` to the KeyShot scripts folder:
     - Windows: `%USERPROFILE%/Documents/KeyShot Studio/Scripts` or `%PROGRAMFILES%/KeyShot Studio/Scripts`
-    - macOS: `/Library/Application Support/KeyShot12/` or `/Library/Application Support/KeyShot/`
-3. Launch KeyShot and access via `Window > Scripting Console > Scripts > Submit to AWS Deadline Cloud > Run`
+    - macOS: `/Library/Application Support/KeyShot Studio/Scripts`
+4. Launch KeyShot and access via `Window > Scripting Console > Scripts > Submit to AWS Deadline Cloud > Run`
 
 ## Submission Hooks
 
@@ -54,7 +67,14 @@ See [deadline-cloud's `docs/submission-hooks.md`](https://github.com/aws-deadlin
 
 ## Worker Setup for KeyShot
 
-To run KeyShot jobs on Deadline Cloud, workers must have KeyShot Studio installed and licensed. You can create a KeyShot conda package for your fleet using the [sample in the deadline-cloud-samples repository](https://github.com/aws-deadline/deadline-cloud-samples).
+To run KeyShot jobs on Deadline Cloud, workers must have KeyShot Studio installed and licensed.
+
+Deadline Cloud does not provide a KeyShot conda package in the `deadline-cloud` channel. To run KeyShot on
+service-managed fleets, or any fleet that uses a conda queue environment, build your own KeyShot conda package
+using the [KeyShot conda recipe in the deadline-cloud-samples repository](https://github.com/aws-deadline/deadline-cloud-samples/tree/mainline/conda_recipes/keyshot-2025)
+and host it in your own conda channel, such as an S3 bucket. Then set the queue environment's `CondaChannels` parameter
+default to that channel, or enter it in the submitter's job settings. The submitter requests the `keyshot=<major version>.*`
+package that matches the version of KeyShot the job is submitted from.
 
 > [!NOTE]  
 > The KeyShot adaptor uses TCP ports in the range 9000-9099 for internal communication during rendering. These ports only listen on the loopback interface (127.0.0.1) and do not require network access.

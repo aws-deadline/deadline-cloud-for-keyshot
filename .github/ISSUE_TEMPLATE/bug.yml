@@ -57,7 +57,6 @@ body:
         1. Operating system (e.g. Windows Server 2022; Amazon Linux 2023; etc.)
         2. Version of KeyShot
         3. Version of this package
-        4. If this is from a version installed by the Deadline Cloud Submitter installer, then what version of the submitter installer?
 
         Please share other details about your environment that you think might be relevant to reproducing the bug.
     validations:

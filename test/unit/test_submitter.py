@@ -218,7 +218,8 @@ def test_settings_apply_sticky_settings():
                 # Some parameters should not be sticky
                 {"name": "KeyShotFile", "value": "scene_file_from_sticky_settings"},
                 {"name": "CondaPackages", "value": "keyshot=2023.* keyshot-openjd=0.0.1"},
-                {"name": "CondaChannels", "value": "conda-forge"},
+                # CondaChannels should be sticky so users can point at their own channel
+                {"name": "CondaChannels", "value": "s3://my-bucket/conda-channel"},
             ],
             "inputFilenames": ["test_filename_20"],
             "inputDirectories": ["test_directory_21"],
@@ -232,6 +233,7 @@ def test_settings_apply_sticky_settings():
         {"name": "OutputFilePath", "value": "test_output_2"},
         {"name": "OutputFormat", "value": "JPEG"},
         {"name": "Frames", "value": "20-27"},
+        {"name": "CondaChannels", "value": "s3://my-bucket/conda-channel"},
     ]
     assert settings.input_filenames == ["test_filename_20"]
     assert settings.input_directories == ["test_directory_21"]
@@ -524,8 +526,7 @@ def test_create_bundle_conda_parameters():
 
         assert conda_packages is not None
         assert conda_packages["value"] == "keyshot=2024.*"
-        assert conda_channels is not None
-        assert conda_channels["value"] == ""
+        assert conda_channels is None
 
 
 def test_create_bundle_gpu_requirements():
