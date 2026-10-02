@@ -7,7 +7,6 @@ pytest == 9.*
 pytest-asyncio == 1.*
 pytest-cov == 7.*
 pytest-xdist == 3.*
-pywin32 ; sys_platform == 'win32'
 ruff == 0.16.*
 types-pyyaml == 6.*
 twine == 7.*

@@ -103,14 +103,5 @@ To run the integration tests:
 1. Ensure licensing is available on your machine for KeyShot
 1. Run `hatch run integ:test`
 
-## Testing the installer
-
-1. Download the install builder tool from https://installbuilder.com/ (Evaluation)
-2. Run `hatch run build`
-3. Run `hatch run installer:build-installer --local-dev`
-4. Installer should be built under the installer sub-folder.
-5. Double click on the built installer to run it.
-
-
 ## Relevant links
 - [Keyshot 2024 scripting documentation](https://media.keyshot.com/scripting/doc/2024.1/lux.html)

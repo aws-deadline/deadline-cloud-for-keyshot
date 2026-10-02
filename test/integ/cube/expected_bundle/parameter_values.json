@@ -27,10 +27,6 @@
         {
             "name": "CondaPackages",
             "value": "keyshot=2025.*"
-        },
-        {
-            "name": "CondaChannels",
-            "value": ""
         }
     ]
 }

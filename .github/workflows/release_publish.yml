@@ -35,7 +35,7 @@ jobs:
       tag: ${{ needs.TagRelease.outputs.tag }}
 
   ManualTestGate:
-    needs: [TagRelease, BuildInstaller]
+    needs: [TagRelease, PreRelease]
     runs-on: ubuntu-latest
     environment: release-gate
     steps:
@@ -51,34 +51,8 @@ jobs:
       with:
           tag: ${{ needs.TagRelease.outputs.tag }}
 
-  BuildInstaller:
-    needs: [TagRelease, PreRelease]
-    uses: aws-deadline/.github/.github/workflows/reusable_build_installers.yml@mainline
-    secrets: inherit
-    permissions:
-      id-token: write
-      contents: read
-    with:
-      ref_type: tags
-      ref: ${{ needs.TagRelease.outputs.tag }}
-      oses: "['Windows', 'MacOS']"
-      environment: release
-      project_name: ${{ github.event.repository.name }}
-
-  ReleaseInstaller:
-    needs: [TagRelease, BuildInstaller, ManualTestGate]
-    uses: aws-deadline/.github/.github/workflows/reusable_release_installers.yml@mainline
-    secrets: inherit
-    permissions:
-      id-token: write
-      contents: read
-    with:
-      tag: ${{ needs.TagRelease.outputs.tag }}
-      oses: "['Windows', 'MacOS']"
-      project_name: ${{ github.event.repository.name }}
-
   Release:
-      needs: [TagRelease, ReleaseInstaller]
+      needs: [TagRelease, ManualTestGate]
       uses: aws-deadline/.github/.github/workflows/reusable_release.yml@mainline
       secrets: inherit
       permissions:
