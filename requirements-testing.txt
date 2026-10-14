@@ -7,6 +7,6 @@ pytest == 9.*
 pytest-asyncio == 1.*
 pytest-cov == 7.*
 pytest-xdist == 3.*
-ruff == 0.16.*
+ruff == 0.17.*
 types-pyyaml == 6.*
 twine == 7.*
